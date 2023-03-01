@@ -7,3 +7,8 @@ df=pd.read_csv(r'C:\Users\jainv\Desktop\Learning\Upgrad\MachineLearning\kool_kar
 lr_model_1 = smf.ols('SALES ~ ADVT', data = df)
 lr_model_1 = lr_model_1.fit() ##### CODE HERE #####
 print(lr_model_1.summary())
+
+
+# Compute the residual standard error
+rse_1 = np.sqrt(np.sum(lr_model_1.resid**2)/lr_model_1.df_resid)
+print(np.round(rse_1, 2))
