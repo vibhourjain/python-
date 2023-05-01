@@ -40,7 +40,6 @@ df.info()
 #Feature Engineering
 # Age of the house 
 df['AgeHouse'] = df['YrSold'] - df['YearBuilt']
-df.head()
 
 # Removing columns
 df.drop(['YearBuilt', 'YearRemodAdd', 'GarageYrBlt', 'YrSold', 'MoSold'], axis=1, inplace=True)
@@ -50,4 +49,17 @@ df['MSSubClass'] = df['MSSubClass'].astype('object')
 df['OverallQual'] = df['OverallQual'].astype('object')
 df['OverallCond'] = df['OverallCond'].astype('object')
 
+# Checking percentage of missing values in columns
+(round(100*(df.isnull().sum()/len(df.index)),2)).to_frame('Nulls').sort_values(by='Nulls' , ascending=False)
+
+# Imputing missing values of LotFrontage with median
+df.loc[np.isnan(df['LotFrontage']), 'LotFrontage'] = df['LotFrontage'].median()
+
+# Deleting the rows for missing values in MasVnrArea
+df = df[~np.isnan(df['MasVnrArea'])]
+
+# Imputing Electrical column missing values with SBrkr
+df.loc[pd.isnull(df['Electrical']), ['Electrical']] = 'SBrkr'
+
+numeric_cols = list(df.select_dtypes(include=['int64', 'float64']).columns)
 
