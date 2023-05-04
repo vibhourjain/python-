@@ -105,7 +105,7 @@ X1_train, X1_val, X2_train, X2_val, y_train, y_val = train_test_split(X1, X2, y,
 # Scale the non-dummy variables
 scaler = StandardScaler()
 X1_train[['duration', 'amount', 'age']]= scaler.fit_transform(X1_train[['duration', 'amount', 'age']])
-X2_train[['duration', 'amount', 'age']]= scaler.transform(X2_train[['duration', 'amount', 'age']])
+X2_train[['duration', 'amount', 'age']]= scaler.fit_transform(X2_train[['duration', 'amount', 'age']])
 
 X1_val[['duration', 'amount', 'age']]= scaler.transform(X1_val[['duration', 'amount', 'age']])
 X2_val[['duration', 'amount', 'age']]= scaler.transform(X2_val[['duration', 'amount', 'age']])
