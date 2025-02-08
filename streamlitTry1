@@ -1,0 +1,139 @@
+import streamlit as st
+import pandas as pd
+import pyodbc
+import paramiko
+from io import StringIO
+
+# Function to connect to Sybase database (for Page 1)
+def connect_to_sybase(instance):
+    # Replace with your actual connection details for each instance
+    connection_strings = {
+        "Instance 1": "DSN=SybaseInstance1;UID=username;PWD=password",
+        "Instance 2": "DSN=SybaseInstance2;UID=username;PWD=password",
+        "Instance 3": "DSN=SybaseInstance3;UID=username;PWD=password",
+        "Instance 4": "DSN=SybaseInstance4;UID=username;PWD=password",
+        "Instance 5": "DSN=SybaseInstance5;UID=username;PWD=password",
+    }
+    try:
+        conn = pyodbc.connect(connection_strings[instance])
+        return conn
+    except Exception as e:
+        st.error(f"Failed to connect to {instance}: {e}")
+        return None
+
+# Function to execute SQL query (for Page 1)
+def execute_query(conn, sql):
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        columns = [column[0] for column in cursor.description]
+        df = pd.DataFrame.from_records(rows, columns=columns)
+        return df
+    except Exception as e:
+        st.error(f"Error executing query: {e}")
+        return None
+
+# Function to execute SSH command (for Page 2)
+def execute_ssh_command(hostname, username, password, command):
+    try:
+        # Create an SSH client
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname, username=username, password=password)
+
+        # Execute the command
+        stdin, stdout, stderr = ssh.exec_command(command)
+        output = stdout.read().decode()
+        error = stderr.read().decode()
+
+        # Close the connection
+        ssh.close()
+
+        return output, error
+    except Exception as e:
+        return None, str(e)
+
+# Page 1: SQL Functionality
+def page_sql():
+    st.title("SQL Query Runner")
+
+    # Text area for SQL input
+    sql_query = st.text_area("Paste your SQL query here:", height=150)
+
+    # Buttons for selecting the instance
+    st.write("Select an instance to run the query:")
+    instance_buttons = ["Instance 1", "Instance 2", "Instance 3", "Instance 4", "Instance 5"]
+    selected_instance = st.radio("Instance", instance_buttons)
+
+    # Button to execute the query
+    if st.button("Run Query"):
+        if sql_query.strip() == "":
+            st.warning("Please enter a SQL query.")
+        else:
+            with st.spinner(f"Running query on {selected_instance}..."):
+                conn = connect_to_sybase(selected_instance)
+                if conn:
+                    df = execute_query(conn, sql_query)
+                    if df is not None:
+                        st.success("Query executed successfully!")
+                        st.write(f"Top 10 results from {selected_instance}:")
+                        st.dataframe(df.head(10))  # Display top 10 rows
+                        conn.close()
+
+                        # Save the full result set to session state
+                        st.session_state["result_df"] = df
+
+    # Section to save the result to Excel
+    if "result_df" in st.session_state:
+        st.write("### Save Results to Excel")
+        file_name = st.text_input("Enter the file name (without extension):", "output")
+        if st.button("Write to Excel"):
+            if file_name.strip() == "":
+                st.warning("Please enter a file name.")
+            else:
+                file_path = f"{file_name}.xlsx"
+                try:
+                    st.session_state["result_df"].to_excel(file_path, index=False)
+                    st.success(f"Results saved to **{file_path}**!")
+                except Exception as e:
+                    st.error(f"Error saving file: {e}")
+
+# Page 2: SSH Functionality
+def page_ssh():
+    st.title("Remote Unix Host Command Executor")
+
+    # Input fields for SSH connection
+    hostname = st.text_input("Hostname (e.g., example.com):")
+    username = st.text_input("Username:")
+    password = st.text_input("Password:", type="password")
+    command = st.text_area("Enter the command to execute:", height=100)
+
+    # Button to execute the command
+    if st.button("Execute Command"):
+        if not hostname or not username or not password or not command:
+            st.warning("Please fill in all fields.")
+        else:
+            with st.spinner("Executing command..."):
+                output, error = execute_ssh_command(hostname, username, password, command)
+                if output:
+                    st.success("Command executed successfully!")
+                    st.write("### Output:")
+                    st.code(output)
+                if error:
+                    st.error("Error occurred:")
+                    st.code(error)
+
+# Main App
+def main():
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["SQL Query Runner", "Remote Unix Command Executor"])
+
+    if page == "SQL Query Runner":
+        page_sql()
+    elif page == "Remote Unix Command Executor":
+        page_ssh()
+
+# Run the app
+if __name__ == "__main__":
+    main()
