@@ -8,29 +8,29 @@ USERNAME = "your_username"
 PASSWORD = "your_password"
 DRIVER = "Sybase ASE ODBC Driver"  # Ensure this driver is installed
 
-# Establish connection
-conn_str = (
-    f'DRIVER={{{DRIVER}}};'
-    f'SERVER={SERVER};'
-    f'PORT={PORT};'
-    f'DATABASE={DATABASE};'
-    f'UID={USERNAME};'
-    f'PWD={PASSWORD};'
-')
+# Corrected connection string
+conn_str = f"""
+DRIVER={{{DRIVER}}};
+SERVER={SERVER};
+PORT={PORT};
+DATABASE={DATABASE};
+UID={USERNAME};
+PWD={PASSWORD};
+"""
 
 try:
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
-    
+
     # Example query
     query = "SELECT TOP 10 * FROM your_table;"
     cursor.execute(query)
-    
+
     # Fetch and print results
     rows = cursor.fetchall()
     for row in rows:
         print(row)
-    
+
     # Close connection
     cursor.close()
     conn.close()
