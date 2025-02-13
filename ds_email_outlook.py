@@ -1,3 +1,24 @@
+import win32com.client as win32
+
+def send_email(to_list, cc_list, subject, from_email, email_body):
+    try:
+        # Create Outlook application object
+        outlook = win32.Dispatch('Outlook.Application')
+        mail = outlook.CreateItem(0)  # 0 represents an email item
+
+        # Set email properties
+        mail.Subject = subject
+        mail.BodyFormat = 2  # 2 = HTML format
+        mail.HTMLBody = email_body
+        mail.To = "; ".join(to_list)  # Use semicolon as separator for multiple recipients
+        mail.CC = "; ".join(cc_list)  # Use semicolon as separator for CC recipients
+        mail.Sender = from_email
+
+        # Send the email
+        mail.Send()
+        st.success("Email sent successfully!")
+    except Exception as e:
+        st.error(f"Failed to send email: {e}")
 def page_seek_approval():
     st.title("Seek Approval Form")
 
