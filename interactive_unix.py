@@ -46,3 +46,16 @@ actual_command = "ls -l /some/path"  # Replace with your actual command
 
 output = run_powerbroker_command(host, user, initial_password, pb_command, pb_password, otp, actual_command)
 print(output)
+
+import streamlit as st
+
+host = st.text_input("Unix Host")
+user = st.text_input("Username")
+initial_password = st.text_input("Initial SSH Password", type="password")
+pb_password = st.text_input("Power Broker Password", type="password")
+otp = st.text_input("2FA OTP")
+actual_command = st.text_input("Command to Execute")
+
+if st.button("Run Command"):
+    output = run_powerbroker_command(host, user, initial_password, "powerbroker_command", pb_password, otp, actual_command)
+    st.text_area("Command Output", output, height=300)
