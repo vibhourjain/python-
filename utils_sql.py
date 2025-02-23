@@ -3,13 +3,23 @@ import pandas as pd
 import re
 import sqlite3  # Default for SQLite, add other DB connectors as needed
 from sqlalchemy import create_engine
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename='app.log',  # Logs will be saved to 'app.log'
+    level=logging.INFO,  # Set to INFO to capture all info, warnings, and errors
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 # Function to execute SQL query with parameterized approach
 def execute_query(sql_query, connection):
     try:
         result_df = pd.read_sql(sql_query, connection)
+        logging.info("Query executed successfully.")
         return result_df
     except Exception as e:
+        logging.error(f"Error executing query: {e}")
         st.error(f"Error executing query: {e}")
         return None
 
@@ -18,6 +28,7 @@ def validate_sql(sql_query):
     forbidden_keywords = ["DROP", "ALTER", "TRUNCATE", "DELETE"]
     if re.match(r"^\s*(SELECT|INSERT|UPDATE)", sql_query, re.IGNORECASE):
         if any(keyword in sql_query.upper() for keyword in forbidden_keywords):
+            logging.warning(f"Attempted to execute potentially destructive query: {sql_query}")
             return False
         return True
     return False
@@ -73,6 +84,7 @@ if st.button("Execute Query"):
             elif db_type == "SQLite":
                 engine = create_engine(f"sqlite:///{database}.db")
             
+            logging.info(f"Connected to the {db_type} database at {host}.")
             st.success("Connected to the database!")
 
             if sql_query and validate_sql(sql_query):
@@ -93,13 +105,17 @@ if st.button("Execute Query"):
                         file_name="query_results.csv",
                         mime="text/csv",
                     )
+                    logging.info("Query results displayed and CSV download provided.")
             else:
                 st.error("Invalid SQL query or contains restricted keywords.")
+                logging.warning(f"Invalid or restricted SQL query: {sql_query}")
 
         except Exception as e:
+            logging.error(f"Failed to connect to the database: {e}")
             st.error(f"Failed to connect to the database: {e}")
     else:
         st.warning("Please provide all database connection details.")
+        logging.warning("Incomplete database connection details provided.")
 
 # Display Query History with an option to clear
 st.sidebar.subheader("Query History")
@@ -109,60 +125,4 @@ if st.session_state.query_history:
     if st.sidebar.button("Clear History"):
         st.session_state.query_history.clear()
         st.sidebar.success("Query history cleared!")
-
-import oracledb
-
-# Oracle connection details
-username = "hr"
-password = "hr"
-host = "localhost"
-port = "1521"
-service_name = "xepdb1"
-
-# Create DSN (Data Source Name)
-dsn = oracledb.makedsn(host, port, service_name=service_name)
-
-# Establish connection
-try:
-    connection = oracledb.connect(user=username, password=password, dsn=dsn)
-    print("Connected to Oracle database!")
-
-    # Execute a test query
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM dual")
-    print(cursor.fetchall())
-
-    # Close the cursor and connection
-    cursor.close()
-    connection.close()
-except Exception as e:
-    print(f"Error: {e}")
-
-
-import oracledb
-
-# Oracle connection details
-username = "hr"
-password = "hr"
-host = "localhost"
-port = "1521"
-service_name = "xepdb1"
-
-# Create DSN (Data Source Name)
-dsn = oracledb.makedsn(host, port, service_name=service_name)
-
-# Establish connection
-try:
-    connection = oracledb.connect(user=username, password=password, dsn=dsn)
-    print("Connected to Oracle database!")
-
-    # Execute a test query
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM dual")
-    print(cursor.fetchall())
-
-    # Close the cursor and connection
-    cursor.close()
-    connection.close()
-except Exception as e:
-    print(f"Error: {e}")
+        logging.info("Query history cleared.")
