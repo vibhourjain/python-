@@ -109,3 +109,31 @@ if st.session_state.query_history:
     if st.sidebar.button("Clear History"):
         st.session_state.query_history.clear()
         st.sidebar.success("Query history cleared!")
+
+import oracledb
+
+# Oracle connection details
+username = "hr"
+password = "hr"
+host = "localhost"
+port = "1521"
+service_name = "xepdb1"
+
+# Create DSN (Data Source Name)
+dsn = oracledb.makedsn(host, port, service_name=service_name)
+
+# Establish connection
+try:
+    connection = oracledb.connect(user=username, password=password, dsn=dsn)
+    print("Connected to Oracle database!")
+
+    # Execute a test query
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM dual")
+    print(cursor.fetchall())
+
+    # Close the cursor and connection
+    cursor.close()
+    connection.close()
+except Exception as e:
+    print(f"Error: {e}")
