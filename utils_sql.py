@@ -44,9 +44,12 @@ db_type = st.selectbox(
 
 # Input for database connection details
 host = st.text_input("Host")
+port = st.text_input("Port", value="5000")  # Assuming default port
 user = st.text_input("User")
 password = st.text_input("Password", type="password")
 database = st.text_input("Database")
+encrypt_password = st.checkbox("Encrypt Password", value=True)
+charset = st.text_input("Charset", value="sjis")
 
 # Toggle button to choose between pasting SQL or uploading a file
 input_method = st.radio(
@@ -74,17 +77,19 @@ if 'query_history' not in st.session_state:
 if st.button("Execute Query"):
     if host and user and password and database:
         try:
-            # Establish connection
+            # Establish connection based on selected DB type
             if db_type == "MySQL":
                 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}/{database}")
             elif db_type == "Oracle":
                 engine = create_engine(f"oracle+cx_oracle://{user}:{password}@{host}/{database}")
             elif db_type == "Sybase":
-                engine = create_engine(f"sybase+pyodbc://{user}:{password}@{host}/{database}")
+                # Updated Sybase connection string with parameters
+                conn_str = f"sybase+pyodbc://{user}:{password}@{host}:{port}/{database}?EncryptPassword={str(encrypt_password).lower()}&charset={charset}"
+                engine = create_engine(conn_str)
+                logging.info(f"Connected to Sybase database at {host}:{port} with charset {charset} and encryption: {encrypt_password}")
             elif db_type == "SQLite":
                 engine = create_engine(f"sqlite:///{database}.db")
             
-            logging.info(f"Connected to the {db_type} database at {host}.")
             st.success("Connected to the database!")
 
             if sql_query and validate_sql(sql_query):
