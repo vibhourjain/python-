@@ -63,6 +63,56 @@ def authenticate(username, password):
 # STREAMLIT APP
 # ========================
 def login_page():
+    def login_page():
+    # Add this custom CSS block
+    st.markdown("""
+    <style>
+    /* Main page background */
+    .stApp {
+        background-color: #2E3440;
+    }
+    
+    /* Login container */
+    .stForm {
+        background-color: #3B4252 !important;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Input fields */
+    .stTextInput input, .stTextInput label, 
+    .stPassword input, .stPassword label {
+        color: #ECEFF4 !important;
+        background-color: #434C5E !important;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        background-color: #88C0D0 !important;
+        color: #2E3440 !important;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    
+    /* Headers */
+    h1 {
+        color: #88C0D0 !important;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    /* Success/error messages */
+    .stAlert {
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Rest of your existing login page code...
+    st.title("Secure Authentication System")
+    # ... (keep the existing form and logic)
+    
     st.title("Secure Authentication System")
     
     with st.form("auth_form"):
