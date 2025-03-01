@@ -12,37 +12,44 @@ def paramiko_powerbroker_flow(
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     try:
+        # Connect to host
         client.connect(hostname, username=username, password=password)
         chan = client.invoke_shell()
-        
+
         # Wait for initial prompt
+        output = ''
         while not chan.recv_ready():
-            time.sleep(0.5)
-        chan.recv(1024)  # Clear buffer
-        
+            time.sleep(0.1)
+        output += chan.recv(1024).decode()
+
         # Send pbrun command
         chan.send(f"{pbrun_command}\n")
-        
+
         # Handle password prompt
         while True:
-            resp = chan.recv(1024).decode()
-            if "Password:" in resp:
-                chan.send(f"{password}\n")
-                break
-            time.sleep(0.5)
-        
+            if chan.recv_ready():
+                output += chan.recv(1024).decode()
+                if "Password:" in output:
+                    chan.send(f"{password}\n")
+                    break
+            time.sleep(0.1)
+
         # Handle OTP prompt
+        output = ''
         while True:
-            resp = chan.recv(1024).decode()
-            if "Security Code:" in resp:
-                chan.send(f"{otp}\n")
-                break
-            time.sleep(0.5)
-        
+            if chan.recv_ready():
+                output += chan.recv(1024).decode()
+                if "Security Code:" in output:
+                    chan.send(f"{otp}\n")
+                    break
+            time.sleep(0.1)
+
         # Get final output
-        time.sleep(1)  # Wait for command execution
-        output = chan.recv(65535).decode()
+        time.sleep(1)
+        while chan.recv_ready():
+            output += chan.recv(4096).decode()
+
         return output
-        
+
     finally:
         client.close()
