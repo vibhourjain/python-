@@ -10,7 +10,7 @@ SMTP_SERVER = "smtp.office365.com"
 SMTP_PORT = 587
 OUTLOOK_EMAIL = "your_outlook_email@example.com"  # Replace with your Outlook email
 OUTLOOK_PASSWORD = "your_password"  # Use an App Password if 2FA is enabled
-
+print("hello")
 def send_email_outlook(sender, recipients, cc, subject, body, attachment=None, filename=None):
     try:
         # Create the email
