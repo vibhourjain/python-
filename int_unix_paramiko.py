@@ -1,55 +1,86 @@
 import paramiko
 import time
+import re
 
-def paramiko_powerbroker_flow(
+def run_pbrun(
     hostname,
     username,
     password,
     pbrun_command,
-    otp
+    pb_password,
+    security_code,
+    timeout=10
 ):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     try:
         # Connect to host
-        client.connect(hostname, username=username, password=password)
-        chan = client.invoke_shell()
-
-        # Wait for initial prompt
-        output = ''
-        while not chan.recv_ready():
-            time.sleep(0.1)
-        output += chan.recv(1024).decode()
+        client.connect(
+            hostname,
+            username=username,
+            password=password,
+            timeout=timeout
+        )
+        
+        # Create an interactive shell with PTY
+        chan = client.invoke_shell(width=200, height=50)
+        chan.settimeout(timeout)
 
         # Send pbrun command
         chan.send(f"{pbrun_command}\n")
-
-        # Handle password prompt
-        while True:
-            if chan.recv_ready():
-                output += chan.recv(1024).decode()
-                if "Password:" in output:
-                    chan.send(f"{password}\n")
-                    break
-            time.sleep(0.1)
-
-        # Handle OTP prompt
+        
         output = ''
-        while True:
+        stage = 0  # 0=waiting for password, 1=waiting for security code, 2=done
+        
+        while not chan.exit_status_ready():
             if chan.recv_ready():
-                output += chan.recv(1024).decode()
-                if "Security Code:" in output:
-                    chan.send(f"{otp}\n")
-                    break
-            time.sleep(0.1)
-
-        # Get final output
-        time.sleep(1)
+                chunk = chan.recv(4096).decode('utf-8', 'ignore')
+                output += chunk
+                
+                # Debug logging
+                print("RECEIVED:", chunk)
+                
+                # Detect password prompt
+                if stage == 0 and re.search(r'[Pp]assword:\s*$', output):
+                    chan.send(f"{pb_password}\n")
+                    output = ''
+                    stage = 1
+                    print("SENT PASSWORD")
+                    continue
+                    
+                # Detect security code prompt
+                if stage == 1 and re.search(r'Security [Cc]ode:\s*$', output):
+                    chan.send(f"{security_code}\n")
+                    output = ''
+                    stage = 2
+                    print("SENT SECURITY CODE")
+                    continue
+                    
+            # Exit condition
+            if stage == 2 and not chan.recv_ready():
+                time.sleep(1)  # Wait for final output
+                break
+                
+        # Get remaining output
         while chan.recv_ready():
-            output += chan.recv(4096).decode()
+            output += chan.recv(4096).decode('utf-8', 'ignore')
 
         return output
 
+    except Exception as e:
+        return f"Error: {str(e)}"
     finally:
         client.close()
+
+# Usage example
+result = run_pbrun(
+    hostname="your-server.com",
+    username="your_username",
+    password="your_ssh_password",
+    pbrun_command="pbrun /bin/bash",  # Your actual pbrun command
+    pb_password="powerbroker_password",
+    security_code="123456"
+)
+
+print("Final output:", result)
