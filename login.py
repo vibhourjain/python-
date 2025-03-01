@@ -63,7 +63,6 @@ def authenticate(username, password):
 # STREAMLIT APP
 # ========================
 def login_page():
-    def login_page():
     # Add this custom CSS block
     st.markdown("""
     <style>
@@ -108,12 +107,7 @@ def login_page():
     }
     </style>
     """, unsafe_allow_html=True)
-
-    # Rest of your existing login page code...
-    st.title("Secure Authentication System")
-    # ... (keep the existing form and logic)
-    
-    st.title("Secure Authentication System")
+    st.title("ISHIN- Authentication")
     
     with st.form("auth_form"):
         username = st.text_input("Username")
