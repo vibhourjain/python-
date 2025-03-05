@@ -1,6 +1,7 @@
 import streamlit as st
 import logging
 import os
+import page_interactive_unix
 
 logger = logging.getLogger(__name__)
 log_file_name =os.path.expanduser("~/python_app.log")
@@ -60,7 +61,7 @@ def page_information():
     pass
 
 def page_unix_strikes():
-    pass
+    page_interactive_unix.page_interactive_broker()
 
 def main():
     st.sidebar.title("SRE Automation")
