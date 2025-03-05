@@ -19,7 +19,7 @@ def run_pbrun(hostname, username, password, pbrun_command, security_code, timeou
     stage = 0  
     password_attempts = 0
     security_attempts = 0
-    chan = None  
+    chan = None  # Ensure 'chan' is always defined
 
     try:
         logger.info(f"Connecting to {hostname} as {username}")
@@ -38,7 +38,7 @@ def run_pbrun(hostname, username, password, pbrun_command, security_code, timeou
                 logger.error("SSH connection lost, aborting")
                 break
 
-            ready, _, _ = select.select([chan], [], [], 1)  
+            ready, _, _ = select.select([chan], [], [], 1)  # Efficiently wait for input
             if ready:
                 chunk = chan.recv(4096).decode('utf-8', 'ignore')
                 output += chunk
@@ -68,17 +68,33 @@ def run_pbrun(hostname, username, password, pbrun_command, security_code, timeou
 
         return output
 
-    except (AuthenticationException, SSHException, socket.timeout, OSError) as e:
-        logger.error(f"Error: {str(e)}")
-        return f"Error: {str(e)}"
+    except AuthenticationException:
+        logger.error("Authentication failed, please check credentials.")
+        return "Error: Authentication failed"
+    
+    except SSHException as e:
+        logger.error(f"SSH error: {str(e)}")
+        return f"Error: SSH error - {str(e)}"
+    
+    except socket.timeout:
+        logger.error("Connection timed out")
+        return "Error: Connection timed out"
+    
+    except OSError as e:
+        logger.error(f"Network error: {str(e)}")
+        return f"Error: Network issue - {str(e)}"
+
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return f"Error: Unexpected issue - {str(e)}"
 
     finally:
         try:
-            if chan:
+            if chan is not None:
                 chan.send("exit\n")
                 time.sleep(0.5)
                 chan.close()
             client.close()
             logger.info("Connection closed")
         except Exception:
-            pass
+            pass  # Avoid logging errors from cleanup operations
