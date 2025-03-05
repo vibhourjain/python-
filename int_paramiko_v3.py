@@ -19,7 +19,7 @@ def run_pbrun(
     password,
     pbrun_command,
     security_code,
-    timeout=120
+    timeout=30
 ):
     """
     Logs into a UNIX server via SSH, executes a `pbrun` command, and handles interactive prompts.
@@ -91,7 +91,7 @@ def run_pbrun(
                 logger.info("Process completed")
                 break
 
-            time.sleep(0.5)
+            time.sleep(0.2)
 
         # Capture final output
         time.sleep(1)
@@ -109,7 +109,7 @@ def run_pbrun(
             # Gracefully close the connection
             if chan and chan.active:
                 chan.send('\x03')  # Send Ctrl+C to terminate any running command
-                time.sleep(0.5)
+                time.sleep(0.2)
             client.close()
             logger.info("Connection closed")
         except Exception:
