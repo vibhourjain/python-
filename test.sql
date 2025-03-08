@@ -1,0 +1,2 @@
+select * from EMPLOYEES e WHERE 1=1
+AND  e.EMPLOYEE_ID = 172
