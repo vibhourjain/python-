@@ -27,3 +27,38 @@ for path in $paths; do
   # Print data row
   echo "$file_name,$path,$file_permissions,\"$modified_date\",$is_permission_change"
 done
+
+
+## Version 3: based on filename
+
+#!/bin/bash
+
+# Configuration Variables
+paths="/path/to/folder1 /path/to/folder2" # Directories to search
+file_pattern="*.txt" # Pattern to match filenames (e.g., *.txt, log-*.log)
+expected_permissions="755"
+
+# Calculate yesterday's date in seconds since epoch
+threshold_seconds=$(date -d "yesterday" +%s)
+
+# Print headers
+echo "File,Path,Permissions,Modified,is_permission_change"
+
+# Loop through the directories
+for dir in $paths; do
+  # Find files matching the pattern within the directory
+  find "$dir" -type f -name "$file_pattern" -printf "%p\n" | while read path; do
+    file_name=$(basename "$path")
+    file_permissions=$(stat -c "%a" "$path")
+    modified_seconds=$(stat -c "%Y" "$path")
+    modified_date=$(date -d @$modified_seconds +"%Y-%m-%d %H:%M:%S")
+
+    if [[ "$modified_seconds" -ge "$threshold_seconds" && "$file_permissions" != "$expected_permissions" ]]; then
+      is_permission_change=1
+    else
+      is_permission_change=0
+    fi
+
+    echo "$file_name,$path,$file_permissions,\"$modified_date\",$is_permission_change"
+  done
+done
