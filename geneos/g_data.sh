@@ -110,3 +110,60 @@ for dir in "${paths[@]}"; do
     done
   done
 done
+
+
+# Version 5
+# Consider only working days
+
+#!/bin/bash
+
+# Configuration Variables
+path_patterns=(
+  "/to/monitor/path1/trade_pattern1_*.log"
+  "/to/monitor/path1/orders_pattern1_*.log"
+  "/to/monitor/path2/recon_pattern1_*.log"
+  "/to/monitor/path2/recon_pattern2_*.log"
+  "/to/monitor/path2/settle_pattern1_*.log"
+  "/to/monitor/path2/settle_trade_pattern1_*.log"
+)
+
+expected_permissions="755"
+
+# Calculate the start date (Friday)
+current_day=$(date +%w) # 0 (Sunday) to 6 (Saturday)
+
+if [[ $current_day -eq 1 ]]; then # Monday
+  start_date=$(date -d "3 days ago 00:00:00" +%Y-%m-%d\ %H:%M:%S)
+elif [[ $current_day -eq 0 ]]; then # Sunday
+  start_date=$(date -d "2 days ago 00:00:00" +%Y-%m-%d\ %H:%M:%S)
+elif [[ $current_day -eq 6 ]]; then # Saturday
+  start_date=$(date -d "1 days ago 00:00:00" +%Y-%m-%d\ %H:%M:%S)
+else # Tuesday to Friday
+  start_date=$(date -d "yesterday 00:00:00" +%Y-%m-%d\ %H:%M:%S)
+fi
+
+# Print headers
+echo "File,Path,Permissions,Modified,is_permission_change"
+
+# Loop through the path_patterns array
+for path_pattern in "${path_patterns[@]}"; do
+  # Extract path and pattern
+  path=$(dirname "$path_pattern")
+  pattern=$(basename "$path_pattern")
+
+  # Find files matching the pattern within the directory and modified since the start date
+  find "$path" -type f -name "$pattern" -newermt "$start_date" -printf "%p\n" | while read file_path; do
+    file_name=$(basename "$file_path")
+    file_permissions=$(stat -c "%a" "$file_path")
+    modified_seconds=$(stat -c "%Y" "$file_path")
+    modified_date=$(date -d @$modified_seconds +"%Y-%m-%d %H:%M:%S")
+
+    if [[ "$file_permissions" != "$expected_permissions" ]]; then
+      is_permission_change=1
+    else
+      is_permission_change=0
+    fi
+
+    echo "$file_name,$file_path,$file_permissions,\"$modified_date\",$is_permission_change"
+  done
+done
