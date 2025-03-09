@@ -62,3 +62,51 @@ for dir in $paths; do
     echo "$file_name,$path,$file_permissions,\"$modified_date\",$is_permission_change"
   done
 done
+
+# Version 4: different path and pattern
+#!/bin/bash
+
+# Configuration Variables
+paths=(
+  "/to/monitor/path1"
+  "/to/monitor/path2"
+)
+
+patterns=(
+  "trade_pattern1_*.log"
+  "orders_pattern1_*.log"
+  "recon_pattern1_*.log"
+  "recon_pattern2_*.log"
+  "settle_pattern1_*.log"
+  "settle_trade_pattern1_*.log"
+)
+
+expected_permissions="755"
+
+# Calculate yesterday's date in seconds since epoch
+threshold_seconds=$(date -d "yesterday" +%s)
+
+# Print headers
+echo "File,Path,Permissions,Modified,is_permission_change"
+
+# Loop through the paths
+for dir in "${paths[@]}"; do
+  # Loop through the patterns
+  for pattern in "${patterns[@]}"; do
+    # Find files matching the pattern within the directory
+    find "$dir" -type f -name "$pattern" -printf "%p\n" | while read path; do
+      file_name=$(basename "$path")
+      file_permissions=$(stat -c "%a" "$path")
+      modified_seconds=$(stat -c "%Y" "$path")
+      modified_date=$(date -d @$modified_seconds +"%Y-%m-%d %H:%M:%S")
+
+      if [[ "$modified_seconds" -ge "$threshold_seconds" && "$file_permissions" != "$expected_permissions" ]]; then
+        is_permission_change=1
+      else
+        is_permission_change=0
+      fi
+
+      echo "$file_name,$path,$file_permissions,\"$modified_date\",$is_permission_change"
+    done
+  done
+done
