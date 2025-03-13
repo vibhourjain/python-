@@ -18,7 +18,7 @@ def page_power_broker_email():
         .footer {{ margin-top: 20px; text-align: center; font-size: 12px; color: gray; }}
 
         /* Styling for the first column */
-        td:first-child {{
+        td:first-child {{ 
             background-color: #80b3ff; /* Lighter blue, not too dark */
             font-weight: bold;
         }}
@@ -61,17 +61,17 @@ def page_power_broker_email():
     <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
 
+    
+    
+    
+    
     <p>Regards,</p>
 
     <p class="footer">This is an automated email.</p>
+
 </body>
 </html>
 """
-
-
-
-
-
 
     # Dropdown for Impacted Applications
     application_name = ["Storage","Kitchen"]
@@ -112,10 +112,10 @@ def page_power_broker_email():
         print("send-to_list", to_list)
         print("send-cc_list", cc_list)
         if to_list:
-            #Generate Subject
+            # Generate Subject
             subject = f"Breakglass Approval Require {work_order_number}"
 
-            # Replace placeholder with user input
+            # Replace placeholders with user input
             email_body = html_template.format(
                 application=application,
                 task_description=task_description,
