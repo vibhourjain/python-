@@ -1,0 +1,23 @@
+<!-- Sidebar Section -->
+<div class="sidebar">
+  <div class="config-selector">
+    <select id="configList" onchange="loadConfigDetails(this.value)">
+      <option value="">Select Configuration</option>
+      <!-- Dynamically populated options -->
+    </select>
+    
+    <div class="upload-section">
+      <input type="file" id="configUpload" accept=".yaml,.yml" hidden>
+      <button onclick="document.getElementById('configUpload').click()">
+        Upload New Config
+      </button>
+      <div id="uploadStatus"></div>
+    </div>
+  </div>
+
+  <!-- Configuration Details Expander -->
+  <div class="expander" id="configDetails">
+    <h4>Active Configuration:</h4>
+    <pre id="configContent"></pre>
+  </div>
+</div>

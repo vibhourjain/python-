@@ -17,9 +17,9 @@ databases:
     port: 1521
     service_name: xepdb1
     format: "oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}"
-  Oracle-co:
+  Oracle-test:
     type: oracle
-    host: localhost
-    port: 1521
+    host: test.com
+    port: 1600
     service_name: xepdb1
     format: "oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}"

@@ -1,0 +1,127 @@
+import streamlit as st
+from utils_email import validate_email_domain, send_email, send_mailto_email
+import logging
+
+from html_v2 import html_template
+
+logger = logging.getLogger(__name__)
+
+def page_power_broker_email():
+    st.title("PowerBroker Request Approval")
+    html_template = """
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+        table {{ width: 70%; margin: 20px auto; border-collapse: collapse; }}
+        th, td {{ border: 1px solid #ddd; padding: 6px 10px; text-align: left; }} /* Reduced padding */
+        th {{ background-color: #f2f2f2; font-weight: bold; padding: 4px 10px; }} /* Reduced padding for header */
+        .header {{ font-size: 22px; font-weight: bold; text-align: center; color: #4CAF50; }}
+        .footer {{ margin-top: 20px; text-align: center; font-size: 12px; color: gray; }}
+
+        /* Styling for the first column */
+        td:first-child { 
+            background-color: #80b3ff; /* Lighter blue, not too dark */
+            font-weight: bold;
+        }}
+    </style>
+</head>
+<body>
+
+    <p>Hi Team,</p>
+
+    <p>Request review and approval on this access request.</p>
+
+    <table>
+        <tr>
+            <th colspan="3" class="header">Request Review and Approval</th>
+        </tr>
+        <tr>
+            <td><b>Application</b></td>
+            <td>{application}</td>
+            <td>Primary impacted Application</td>
+        </tr>
+        <tr>
+            <td><b>Task Description</b></td>
+            <td>{task_description}</td>
+            <td>Description of why the break-glass is needed.
+            Must be detailed enough for non-SME to understand and make an informed decision.</td>
+        </tr>
+        <tr>
+            <td><b>Service Account(s)</b></td>
+            <td>{service_accounts}</td>
+            <td>Break-glass service account(s) needed</td>
+        </tr>
+        <tr>
+            <td><b>User(s)</b></td>
+            <td>{users}</td>
+            <td>Who needs access?</td>
+        </tr>
+    </table>
+
+    <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
+    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
+    <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
+
+    <p>Regards,</p>
+
+    <p class="footer">This is an automated email.</p>
+</body>
+</html>
+"""
+
+
+
+
+
+
+
+    application_name = ["Storage","Kitchen"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+    application_name.sort()
+    application =st.selectbox("Application:",application_name)
+
+    task_description = st.text_area("Task Description:","Need to perform the recovery steps")
+    service_accounts = st.text_area("Service Account(s):")
+    users = st.text_area("User(s):", "Vibhour(zkajghh)")
+    work_order_number = st.text_input("Work-Order Number:").upper()
+
+    with st.expander("Email Details"):
+        # to_list = st.text_area("To (comma-separated):").split(",")
+        # cc_list = st.text_area("CC (comma-separated):").split(",")
+        to_list = st.text_area("To (comma-separated):").split(",")
+        cc_list = st.text_area("CC (comma-separated):").split(",")
+
+
+    # Send email functionality
+    if st.button("Send Email"):
+        # Validate email domains
+
+        print("send-to_list", to_list)
+        print("send-cc_list", cc_list)
+        if to_list:
+            subject = f"Breakglass Approval Require {work_order_number}"
+
+
+            # Replace placeholder with user input
+            email_body = html_template.format(
+                application=application,
+                task_description=task_description,
+                service_accounts=service_accounts,
+                users=users
+            )
+
+
+            send_email(to_list, cc_list, subject, email_body)
