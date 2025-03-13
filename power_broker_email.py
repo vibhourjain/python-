@@ -2,8 +2,6 @@ import streamlit as st
 from utils_email import validate_email_domain, send_email, send_mailto_email
 import logging
 
-from html_v2 import html_template
-
 logger = logging.getLogger(__name__)
 
 def page_power_broker_email():
@@ -20,7 +18,7 @@ def page_power_broker_email():
         .footer {{ margin-top: 20px; text-align: center; font-size: 12px; color: gray; }}
 
         /* Styling for the first column */
-        td:first-child { 
+        td:first-child {{ 
             background-color: #80b3ff; /* Lighter blue, not too dark */
             font-weight: bold;
         }}
@@ -63,19 +61,19 @@ def page_power_broker_email():
     <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
 
+    
+    
+    
+    
     <p>Regards,</p>
 
-    <p class="footer">This is an automated email.</p>
+    <p class="footer">This E-Mail is sent from App.</p>
+
 </body>
 </html>
 """
 
-
-
-
-
-
-
+    # Dropdown for Impacted Applications
     application_name = ["Storage","Kitchen"]
 
 
@@ -90,19 +88,21 @@ def page_power_broker_email():
 
 
 
+
+
     application_name.sort()
-    application =st.selectbox("Application:",application_name)
+    application = st.selectbox("Application:", application_name)
 
     task_description = st.text_area("Task Description:","Need to perform the recovery steps")
     service_accounts = st.text_area("Service Account(s):")
-    users = st.text_area("User(s):", "Vibhour(zkajghh)")
+    users = st.text_area("User(s):", "Vibhour (zkajghh)")
     work_order_number = st.text_input("Work-Order Number:").upper()
 
     with st.expander("Email Details"):
-        # to_list = st.text_area("To (comma-separated):").split(",")
-        # cc_list = st.text_area("CC (comma-separated):").split(",")
-        to_list = st.text_area("To (comma-separated):").split(",")
-        cc_list = st.text_area("CC (comma-separated):").split(",")
+        # to_list = ["vibhourjain@gmail.com"]
+        # cc_list = ["vibhourjain@gmail.com"]
+        to_list = ["vibhourjain@gmail.com"]
+        cc_list = ["vibhourjain@gmail.com"]
 
 
     # Send email functionality
@@ -112,10 +112,10 @@ def page_power_broker_email():
         print("send-to_list", to_list)
         print("send-cc_list", cc_list)
         if to_list:
+            # Generate email Subject
             subject = f"Breakglass Approval Require {work_order_number}"
 
-
-            # Replace placeholder with user input
+            # Replace placeholders with user input
             email_body = html_template.format(
                 application=application,
                 task_description=task_description,
@@ -123,5 +123,5 @@ def page_power_broker_email():
                 users=users
             )
 
-
+            # Send email using win32client
             send_email(to_list, cc_list, subject, email_body)
