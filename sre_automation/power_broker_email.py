@@ -67,7 +67,7 @@ def page_power_broker_email():
     
     <p>Regards,</p>
 
-    <p class="footer">This is an automated email.</p>
+    <p class="footer">This E-Mail is sent from App.</p>
 
 </body>
 </html>
@@ -112,7 +112,7 @@ def page_power_broker_email():
         print("send-to_list", to_list)
         print("send-cc_list", cc_list)
         if to_list:
-            # Generate Subject
+            # Generate email Subject
             subject = f"Breakglass Approval Require {work_order_number}"
 
             # Replace placeholders with user input
@@ -123,5 +123,5 @@ def page_power_broker_email():
                 users=users
             )
 
-            # Send email using win32clinet
+            # Send email using win32client
             send_email(to_list, cc_list, subject, email_body)
