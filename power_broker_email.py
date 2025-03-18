@@ -18,7 +18,7 @@ def page_power_broker_email():
         .footer {{ margin-top: 20px; text-align: center; font-size: 12px; color: gray; }}
 
         /* Styling for the first column */
-        td:first-child {{ 
+        td:first-child {{
             background-color: #80b3ff; /* Lighter blue, not too dark */
             font-weight: bold;
         }}
@@ -28,7 +28,7 @@ def page_power_broker_email():
 
     <p>Hi Team,</p>
 
-    <p>Request review and approval on this access request.</p>
+    <p>Request review and approval on this access request to Japan server break-glass accounts.</p>
 
     <table>
         <tr>
@@ -37,34 +37,35 @@ def page_power_broker_email():
         <tr>
             <td><b>Application</b></td>
             <td>{application}</td>
-            <td>Primary impacted Application</td>
+            <td>Primary impacted Application or AIT</td>
         </tr>
         <tr>
             <td><b>Task Description</b></td>
             <td>{task_description}</td>
             <td>Description of why the break-glass is needed.
-            Must be detailed enough for non-SME to understand and make an informed decision.</td>
+            Must be detailed enough for non-SME to understand and make an informed decision on whether or not to Approve access
+</td>
         </tr>
         <tr>
             <td><b>Service Account(s)</b></td>
-            <td>{service_accounts}</td>
+            <td>{service_account}</td>
             <td>Break-glass service account(s) needed</td>
         </tr>
         <tr>
             <td><b>User(s)</b></td>
             <td>{users}</td>
-            <td>Who needs access?</td>
+            <td>Who needs the break-glass access??</td>
         </tr>
     </table>
 
     <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
-    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
+    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>;
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
 
-    
-    
-    
-    
+
+
+
+
     <p>Regards,</p>
 
     <p class="footer">This E-Mail is sent from App.</p>
@@ -94,9 +95,14 @@ def page_power_broker_email():
     application = st.selectbox("Application:", application_name)
 
     task_description = st.text_area("Task Description:","Need to perform the recovery steps")
-    service_accounts = st.text_area("Service Account(s):")
-    users = st.text_area("User(s):", "Vibhour (zkajghh)")
-    work_order_number = st.text_input("Work-Order Number:").upper()
+    service_account = st.text_input("Service Account(s):")
+    users = st.text_input('Enter Users (nbk-FirstName) comma "," separated:', 'zkajghh-Vibhour')
+    power_broker_grantee = users[:7]
+
+    work_order_number = st.text_input("Work-Order Number:")
+    logger.info(f"application:{application})
+
+    work_order_number = work_order_number.upper()
 
     with st.expander("Email Details"):
         # to_list = ["vibhourjain@gmail.com"]
@@ -112,14 +118,15 @@ def page_power_broker_email():
         print("send-to_list", to_list)
         print("send-cc_list", cc_list)
         if to_list:
-            # Generate email Subject
-            subject = f"Breakglass Approval Require {work_order_number}"
+            # st.success("Success")
+            # Generate email subject
+            subject = f"Breakglass Approval Japan Post-Trade - PowerBroker - {work_order_number}"
 
             # Replace placeholders with user input
             email_body = html_template.format(
                 application=application,
                 task_description=task_description,
-                service_accounts=service_accounts,
+                service_account=service_account,
                 users=users
             )
 

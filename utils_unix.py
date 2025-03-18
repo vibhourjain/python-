@@ -9,6 +9,19 @@ from paramiko.ssh_exception import AuthenticationException, SSHException
 
 logger = logging.getLogger(__name__)
 
+def execute_ssh_command(hostname, username, password, command):
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname, username=username, password=password)
+        stdin, stdout, stderr = ssh.exec_command(command)
+        output = stdout.read().decode()
+        error = stderr.read().decode()
+        ssh.close()
+        return output, error
+    except Exception as e:
+        return None, str(e)
+
 def run_powerbroker_command(hostname, username, password, pbrun_command, security_code, timeout=30):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -17,17 +30,17 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
     end_time = start_time + timedelta(seconds=timeout)
     output = ''
     error = None  # Initialize error variable
-    stage = 0  
+    stage = 0
     password_attempts = 0
     security_attempts = 0
-    chan = None  
+    chan = None
 
     try:
-        logger.info(f"Connecting to {hostname} as {username}")
+        logger.info(f"Connecting to {hostname} as {username} with 2FA {security_code}")
         client.connect(hostname, username=username, password=password, timeout=15)
         logger.info("SSH connection established")
 
-        chan = client.invoke_shell()  
+        chan = client.invoke_shell()
         chan.settimeout(10)
         logger.info("Opened interactive shell")
 
@@ -40,7 +53,7 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
                 logger.error(error)
                 return "", error  # Return empty output with error message
 
-            ready, _, _ = select.select([chan], [], [], 1)  
+            ready, _, _ = select.select([chan], [], [], 1)
             if ready:
                 chunk = chan.recv(4096).decode('utf-8', 'ignore')
                 output += chunk
@@ -76,17 +89,17 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
         error = "Authentication failed, please check credentials."
         logger.error(error)
         return "", error
-    
+
     except SSHException as e:
         error = f"SSH error: {str(e)}"
         logger.error(error)
         return "", error
-    
+
     except socket.timeout:
         error = "Connection timed out"
         logger.error(error)
         return "", error
-    
+
     except OSError as e:
         error = f"Network error: {str(e)}"
         logger.error(error)
@@ -107,3 +120,4 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
             logger.info("Connection closed")
         except Exception:
             pass
+
