@@ -1,3 +1,7 @@
+# /*
+# Updating for API link
+# */
+
 import streamlit as st
 from utils_email import validate_email_domain, send_email, send_mailto_email
 import logging
@@ -57,6 +61,8 @@ def page_power_broker_email():
             <td>Who needs the break-glass access??</td>
         </tr>
     </table>
+    
+    {api_links}
 
     <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
     <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>;
@@ -100,9 +106,12 @@ def page_power_broker_email():
     power_broker_grantee = users[:7]
 
     work_order_number = st.text_input("Work-Order Number:")
-    logger.info(f"application:{application})
+    logger.info(f"application:{application}")
 
     work_order_number = work_order_number.upper()
+
+    service_accounts = [sa.strip() for sa in service_account.split(',')]
+    users_list = [u.strip() for u in users.split(',')]
 
     with st.expander("Email Details"):
         # to_list = ["vibhourjain@gmail.com"]
