@@ -1,31 +1,27 @@
 from flask import Flask, request, render_template_string
 # import utils_unix
-
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = Flask(__name__)
 
 # Unix group and hostname mappings
-unix_groups = {
+d_host_unix_role = {
     'pb1a': ['cosmos', 'opec'],
     'pb2a': ['sify'],
     'pb3a': ['jap', 'aus']
 }
 
-hostnames = {
-    'pb1a': 'host1',
-    'pb2a': 'host2',
-    'pb3a': 'host3'
+d_role_hostname = {
+    'host1': ('pb1a','pb2a')
+    'host2': 'pb3a'
 }
 
 
-def get_unix_group(service_account):
-    for group, accounts in unix_groups.items():
-        if service_account in accounts:
-            return group
+def get_key_from_value(dict1, field):
+    for key1, value1 in dict1.items():
+        if field in value1:
+            return key1
     return None
-
-
-def get_hostname(unix_group):
-    return hostnames.get(unix_group, 'unknown_host')
 
 
 @app.route('/initiate_pbrun', methods=['GET'])
@@ -53,25 +49,36 @@ def execute_pbrun():
     username = request.form['username']
     password = request.form['password']
     security_code = request.form['security_code']
+    user_id=user_id[:7]
+    unix_group = get_key_from_value(d_host_unix_role,service_account)
 
-    unix_group = get_unix_group(service_account)
+    logging.info(f"Value retrieved for service_account:{service_account}")
+
     if not unix_group:
         return "Error: Invalid service account"
+    else:
+        hostname = get_key_from_value(d_role_hostname,unix_group)
 
     hostname = get_hostname(unix_group)
     pbrun_command = f"pbrun {unix_group} initbreakglass-{service_account} {user_id}"
-    print("pbrun_command:",pbrun_command)
+    logging.info(f"Value retrieved for hostname:{hostname};username:{username};security_code:{security_code};
+    pbrun_command:{pbrun_command}")
 
     output, error = ("output","error")
     # output, error = utils_unix.run_powerbroker_command(
     #     hostname, username, password, pbrun_command, security_code
     # )
 
+    if error:
+        return f"Output: {output} <br>Error: {error}"
+    else:
+        return f"Success! Output: {output}"
+
     return f"Output: {output}<br>Error: {error}" if error else f"Success! Output: {output}"
 
 @app.route('/health')
 def health_check():
-    return "API is running", 200
+    return "Welcome ! API for Power Broker is running and healthy !", 200
     
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
