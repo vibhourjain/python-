@@ -12,7 +12,7 @@ d_host_unix_role = {
 }
 
 d_role_hostname = {
-    'host1': ('pb1a','pb2a')
+    'host1': ('pb1a','pb2a'),
     'host2': 'pb3a'
 }
 
@@ -30,15 +30,22 @@ def initiate_pbrun():
     user_id = request.args.get('user_id')
 
     form_html = f'''
-    <form action="/execute_pbrun" method="post">
-        <input type="hidden" name="service_account" value="{service_account}">
-        <input type="hidden" name="user_id" value="{user_id}">
-        Username: <input type="text" name="username" required><br>
-        Password: <input type="password" name="password" required><br>
-        Security Code: <input type="text" name="security_code" required><br>
-        <input type="submit" value="Execute">
-    </form>
-    '''
+  <style>
+      body {{ font-family: Arial, sans-serif; margin: 20px; }}
+      input {{ margin: 5px 0; padding: 5px; }}
+      input[type="submit"] {{ background-color: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; }}
+      input[type="submit"]:hover {{ background-color: #45a049; }}
+  </style>
+  <form action="/execute_pbrun" method="post">
+      <input type="hidden" name="service_account" value="{service_account}">
+      <input type="hidden" name="user_id" value="{user_id}">
+      <label>Username:</label> <input type="text" name="username" required><br>
+      <label>Password:</label> <input type="password" name="password" required><br>
+      <label>Security Code:</label> <input type="text" name="security_code" required><br>
+      <input type="submit" value="Execute">
+  </form>
+'''
+
     return render_template_string(form_html)
 
 
@@ -59,7 +66,7 @@ def execute_pbrun():
     else:
         hostname = get_key_from_value(d_role_hostname,unix_group)
 
-    hostname = get_hostname(unix_group)
+
     pbrun_command = f"pbrun {unix_group} initbreakglass-{service_account} {user_id}"
     logging.info(f"Value retrieved for hostname:{hostname};username:{username};security_code:{security_code};
     pbrun_command:{pbrun_command}")
