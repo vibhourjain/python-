@@ -68,8 +68,8 @@ def execute_pbrun():
 
 
     pbrun_command = f"pbrun {unix_group} initbreakglass-{service_account} {user_id}"
-    logging.info(f"Value retrieved for hostname:{hostname};username:{username};security_code:{security_code};
-    pbrun_command:{pbrun_command}")
+    logging.info(f"Value retrieved for hostname:{hostname};username:{username};"
+                 f"security_code:{security_code}; pbrun_command:{pbrun_command}")
 
     output, error = ("output","error")
     # output, error = utils_unix.run_powerbroker_command(
@@ -81,7 +81,7 @@ def execute_pbrun():
     else:
         return f"Success! Output: {output}"
 
-    return f"Output: {output}<br>Error: {error}" if error else f"Success! Output: {output}"
+    # return f"Output: {output}<br>Error: {error}" if error else f"Success! Output: {output}"
 
 @app.route('/health')
 def health_check():
