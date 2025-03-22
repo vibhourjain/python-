@@ -1,8 +1,15 @@
+# /*
+# Updating for API link
+# */
+
 import streamlit as st
 from utils_email import validate_email_domain, send_email, send_mailto_email
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+print("1")
 
 def page_power_broker_email():
     st.title("PowerBroker Request Approval")
@@ -57,9 +64,11 @@ def page_power_broker_email():
             <td>Who needs the break-glass access??</td>
         </tr>
     </table>
+    
+    {api_links}
 
     <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
-    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
+    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>;
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
 
 
@@ -100,15 +109,31 @@ def page_power_broker_email():
     power_broker_grantee = users[:7]
 
     work_order_number = st.text_input("Work-Order Number:")
-    logger.info(f"application:{application})
+    logger.info(f"application:{application}")
 
     work_order_number = work_order_number.upper()
+
+    service_accounts = [sa.strip() for sa in service_account.split(',')]
+    users_list = [u.strip() for u in users.split(',')]
+
+    api_links = []
+    for sa in service_accounts:
+        for user in users_list:
+            url = f"http://192.168.1.3:5000/initiate_pbrun?service_account={sa}&user_id={user}"
+            api_links.append(f'<li><a href="{url}">Execute {sa} for {user}</a></li>')
+
+    api_links_section = f"""
+        <h3>Approval Links:</h3>
+        <ul>{"".join(api_links)}</ul>
+        """
 
     with st.expander("Email Details"):
         # to_list = ["vibhourjain@gmail.com"]
         # cc_list = ["vibhourjain@gmail.com"]
         to_list = ["vibhourjain@gmail.com"]
         cc_list = ["vibhourjain@gmail.com"]
+
+    print("12")
 
 
     # Send email functionality
@@ -127,7 +152,8 @@ def page_power_broker_email():
                 application=application,
                 task_description=task_description,
                 service_account=service_account,
-                users=users
+                users=users,
+                api_links=api_links_section
             )
 
             # Send email using win32client

@@ -1,0 +1,38 @@
+### import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+from sklearn.linear_model    import LogisticRegression, LogisticRegressionCV
+from sklearn.preprocessing   import StandardScaler
+from sklearn.model_selection import train_test_split
+
+#Read Data
+data=pd.read_csv(r'C:\Users\vibho\Downloads\LogisticRegression\LGRM_PythonLab\Module_2_LabFinal\MyCreditData.csv')
+display(data.head())
+data.info()
+
+# convert columns intot categorical
+ncc=['duration','amount','age','profit']
+for column in data.columns:
+    if column not in ncc:
+        data[column]=pd.Categorical(data[column])
+
+#Assign data into X and y and Create binary column for y
+X=data.drop(columns=['profit'])
+y['is_profit']=np.where(data['profit']>0,1,0)
+y=y['is_profit']
+
+#create dummy data for X
+X=pd.get_dummies(X,drop_first=True)
+
+#Standardize the numerical columns
+scaler=StandardScaler()
+X[['duration','amount','age']]=scaler.fit_transform(X[['duration','amount','age']])
+
+#Split the data into 30-70 ratio
+X_train,X_val,y_train,y_val=train_test_split(X,y,random_state=1,test_size=0.3)
+
+# Creater Model, fit the training data and validate
+log_reg_m1=LogisticRegression(penalty='none',solver='lbfgs',max_iter=200)
+log_reg_m1=log_reg_m1.fit(X_train,y_train)
+log_reg_sklearn.score(X_val, y_val)

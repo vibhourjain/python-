@@ -1,0 +1,41 @@
+import pyodbc
+
+def connect_to_sybase(instance, username, password, database, sql_query=None):
+    # Define the connection string (modify based on your Sybase configuration)
+    connection_string = f'DRIVER={{Adaptive Server Enterprise}};SERVER={instance};UID={username};PWD={password};DATABASE={database}'
+    
+    try:
+        # Establish the connection
+        connection = pyodbc.connect(connection_string)
+        print(f"Successfully connected to Sybase instance: {instance}")
+        
+        # Create a cursor to execute SQL queries
+        cursor = connection.cursor()
+        
+        if sql_query:
+            # Execute the SQL query if provided
+            cursor.execute(sql_query)
+            result = cursor.fetchall()
+            
+            # Print the result
+            for row in result:
+                print(row)
+        
+        # Close the cursor and connection after use
+        cursor.close()
+        connection.close()
+        
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Example usage
+if __name__ == '__main__':
+    # Define your parameters
+    instance = 'your_sybase_instance'    # Replace with your Sybase instance name
+    username = 'your_username'           # Replace with your username
+    password = 'your_password'           # Replace with your password
+    database = 'your_database'           # Replace with your database name
+    sql_query = 'SELECT * FROM sysdatabases;'  # Replace with your SQL query
+    
+    # Call the function to connect and execute the query
+    connect_to_sybase(instance, username, password, database, sql_query)

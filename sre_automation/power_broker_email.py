@@ -59,7 +59,7 @@ def page_power_broker_email():
     </table>
 
     <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
-    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>; 
+    <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>;
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
 
 
