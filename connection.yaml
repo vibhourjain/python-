@@ -6,6 +6,8 @@ databases:
     format: "mysql://{user}:{password}@{host}:{port}/{dbname}"
     
   Oracle-hr:
+    username: hr
+    password: hr
     type: oracle
     host: localhost
     port: 1521
@@ -23,3 +25,5 @@ databases:
     port: 1600
     service_name: xepdb1
     format: "oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}"
+    
+    

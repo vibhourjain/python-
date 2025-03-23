@@ -44,69 +44,74 @@ databases:
 """
 
 
-# Database Configuration Management
+
+# Add to configuration section
+CONFIG_FILE = "db_config.yaml"
+
+
+def save_config(config):
+    with open(CONFIG_FILE, "w") as f:
+        yaml.dump(config, f)
+
+
+# Modified configuration loading
 def load_config(uploaded_file=None):
+    try:
+        # First try to load saved config
+        with open(CONFIG_FILE, "r") as f:
+            saved_config = yaml.safe_load(f)
+    except FileNotFoundError:
+        saved_config = None
+
     if uploaded_file:
-        return yaml.safe_load(uploaded_file)
-    else:
-        return yaml.safe_load(StringIO(DEFAULT_CONFIG))
+        # If user uploads new config, merge with saved config
+        new_config = yaml.safe_load(uploaded_file)
+        merged_config = {**saved_config, **new_config} if saved_config else new_config
+        save_config(merged_config)
+        return merged_config
+
+    return saved_config if saved_config else yaml.safe_load(StringIO(DEFAULT_CONFIG))
 
 
-@st.cache_resource
-def init_engine(db_config, username, password):
-    try:
-        format_str = db_config['format']
-        connection_string = format_str.format(
-            user=username,
-            password=password,
-            **{k: v for k, v in db_config.items() if k != 'format'}
-        )
-        return sqlalchemy.create_engine(connection_string)
-    except Exception as e:
-        st.error(f"Connection error: {e}")
-        return None
-
-
-def run_query(query, db_config, username, password, params=None):
-    try:
-        engine = init_engine(db_config, username, password)
-        if not engine:
-            return None, None
-
-        with engine.connect() as conn:
-            result = conn.execute(sqlalchemy.text(query), params)
-            if result.returns_rows:
-                return result.fetchall(), result.keys()
-        return None, None
-    except Exception as e:
-        st.error(f"Query error: {e}")
-        return None, None
-
-
-# Setup
-QUERIES_DIR = Path("queries")
-QUERIES_DIR.mkdir(parents=True, exist_ok=True)
-
-# App Layout
-st.title("SQL Query Interface")
-
-# Configuration Section
+# In your sidebar section
+# In configuration section
 st.sidebar.header("Database Configuration")
 uploaded_config = st.sidebar.file_uploader("Upload YAML config", type=["yaml", "yml"])
-config = load_config(uploaded_config)
+
+# Load config (temporary in memory only)
+config = load_config(uploaded_config)  # Use existing load_config function
 
 # Database Selection
 db_names = list(config['databases'].keys())
 selected_db = st.sidebar.selectbox("Select Database", db_names)
 db_config = config['databases'][selected_db]
 
-# Credential Inputs
-username = st.sidebar.text_input("Username", "admin")
-password = st.sidebar.text_input("Password", type="password")
+# Credential handling from config or manual input
+credentials = {}
+if 'username' in db_config:
+    credentials['username'] = db_config['username']
+if 'password' in db_config:
+    credentials['password'] = db_config['password']
 
-# Display configuration details
-with st.sidebar.expander("Current Configuration"):
-    st.code(yaml.dump(config['databases'][selected_db], sort_keys=False))
+# Manual credential inputs if not in config
+with st.sidebar.expander("Credentials", expanded=not bool(credentials)):
+    if 'username' not in credentials:
+        credentials['username'] = st.text_input("Username", "admin")
+    if 'password' not in credentials:
+        credentials['password'] = st.text_input("Password", type="password")
+
+# Store in session state
+st.session_state.current_credentials = credentials
+
+# Modified run_query function
+def run_query(query, db_config, params=None):
+    try:
+        # Get credentials from session state
+        username = st.session_state.current_credentials['username']
+        password = st.session_state.current_credentials['password']
+        
+        engine = init_engine(db_config, username, password)
+        # Rest of existing query execution logic...
 
 # Main Tabs
 tab1, tab2, tab3= st.tabs([
