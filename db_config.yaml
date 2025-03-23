@@ -1,0 +1,24 @@
+databases:
+  MySQL-Prod:
+    format: mysql://{user}:{password}@{host}:{port}/{dbname}
+    host: production-db.example.com
+    port: 3306
+    type: mysql
+  Oracle-co:
+    format: oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}
+    host: localhost
+    port: 1521
+    service_name: xepdb1
+    type: oracle
+  Oracle-hr:
+    format: oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}
+    host: localhost
+    port: 1521
+    service_name: xepdb1
+    type: oracle
+  Oracle-test:
+    format: oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}
+    host: test.com
+    port: 1600
+    service_name: xepdb1
+    type: oracle
