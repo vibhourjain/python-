@@ -1,71 +1,71 @@
---Default config
-DEFAULT_CONFIG = {
-    "databases": {
-        "MySQL": {
-            "type": "mysql",
-            "host": "localhost",
-            "port": 3306,
-            "format": "mysql://{user}:{password}@{host}:{port}/{dbname}"
-        },
-        "Sybase": {
-            "type": "sybase",
-            "server": "vibhour.asia.homework.com,57810",
-            "database": "agreen",
-            "driver": "SAP ASE ODBC Driver",
-            "encryptedpassword": "yes",
-            "charset": "sjis",
-            "format": "sybase+pyodbc://{user}:{password}@{server}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
-        }
-    }
-}
-
-2. Modify config file
-import json
-
-def load_config(uploaded_file=None):
-    if uploaded_file:
-        try:
-            return json.load(uploaded_file)
-        except json.JSONDecodeError as e:
-            st.error(f"Invalid JSON format: {str(e)}")
-            return json.loads(json.dumps(DEFAULT_CONFIG))
-    else:
-        return DEFAULT_CONFIG.copy()
-
-
-3. Update file uploader
-uploaded_config = st.sidebar.file_uploader("Upload JSON config", type=["json"])
-
-4. Modify Configuration Display:
-with st.sidebar.expander("Current Configuration", expanded=False):
-    st.write(f"**Active Database:** {session_data['selected_db']}")
-    redacted = redact_config(session_data['db_config'])
-    st.json(redacted)  # Use st.json instead of st.code with yaml
-
-
-5. Example JSON Config File (save as config.json):
+1. make config.json
 {
-    "databases": {
-        "Sybase": {
-            "type": "sybase",
-            "server": "vibhour.asia.homework.com,57810",
-            "database": "agreen",
-            "driver": "SAP ASE ODBC Driver",
-            "encryptedpassword": "yes",
-            "charset": "sjis",
-            "format": "sybase+pyodbc://{user}:{password}@{server}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
-        }
+  "databases": {
+    "Sybase": {
+      "type": "sybase",
+      "server": "vibhour.asia.homework.com",
+      "port": 57810,
+      "database": "agreen",
+      "username": "rishabh",
+      "password": "rish12345678",
+      "driver": "SAP ASE ODBC Driver",
+      "charset": "sjis",
+      "encryptedpassword": "yes",
+      "format": "sybase+pyodbc://{user}:{password}@{server},{port}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
+    },
+    "MSSQL": {
+      "type": "mssql",
+      "server": "ishinjain.jaipurbank.com",
+      "port": 15001,
+      "authentication": "Windows Authentication",
+      "driver": "ODBC Driver 17 for SQL Server",
+      "format": "mssql+pyodbc://@{server},{port}?trusted_connection=yes&driver={driver}"
+    },
+    "Oracle": {
+      "type": "oracle",
+      "username": "rishabh",
+      "password": "password1234",
+      "ldap": "home_app",
+      "oracleclient": "OracleClientDev19c3_home1",
+      "format": "oracle+oracledb://{user}:{password}@ldap://{ldap}?oracle_client={oracleclient}"
     }
+  }
 }
 
-6. Modified Sybase Connection Handling (in init_engine):
-from urllib.parse import quote_plus
 
-# In the encoded_params section:
-encoded_params = {
-    'driver': quote_plus(db_config.get('driver', '')),
-    'server': db_config.get('server', ''),
-    'database': db_config.get('database', ''),
-    'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
-    'charset': db_config.get('charset', 'sjis')
-}
+
+# Initialize engine per user session
+@st.cache_resource
+def init_engine(db_config, username, password, session_id):
+    session_engine_key = f"engine_{session_id}"
+    try:
+        if session_engine_key not in st.session_state:
+            format_str = db_config['format']
+            encoded_params = {
+                'user': quote_plus(username),
+                'password': quote_plus(password),
+                'server': db_config.get('server', ''),
+                'port': db_config.get('port', ''),
+                'database': db_config.get('database', ''),
+                'driver': quote_plus(db_config.get('driver', '')),
+                'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
+                'charset': db_config.get('charset', 'sjis'),
+                'ldap': db_config.get('ldap', ''),
+                'oracleclient': db_config.get('oracleclient', '')
+            }
+
+            # Handle different database types
+            if db_config['type'] == 'sybase':
+                connection_string = f"sybase+pyodbc://{encoded_params['user']}:{encoded_params['password']}@{encoded_params['server']},{encoded_params['port']}/{encoded_params['database']}?driver={encoded_params['driver']}&EncryptedPassword={encoded_params['encryptedpassword']}&charset={encoded_params['charset']}"
+            elif db_config['type'] == 'mssql':
+                connection_string = f"mssql+pyodbc://@{encoded_params['server']},{encoded_params['port']}?trusted_connection=yes&driver={encoded_params['driver']}"
+            elif db_config['type'] == 'oracle':
+                connection_string = f"oracle+oracledb://{encoded_params['user']}:{encoded_params['password']}@ldap://{encoded_params['ldap']}?oracle_client={encoded_params['oracleclient']}"
+            else:
+                connection_string = format_str.format(**encoded_params)
+
+            st.session_state[session_engine_key] = sqlalchemy.create_engine(connection_string)
+        return st.session_state[session_engine_key]
+    except Exception as e:
+        st.error(f"Connection error: {e}")
+        return None
