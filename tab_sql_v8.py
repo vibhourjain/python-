@@ -9,6 +9,7 @@ import pandas as pd
 import io
 import json
 import logging
+from urllib.parse import quote_plus
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ def sql_interface_main():
     session_data = get_session_data()
 
     # Default configuration
+    --Default config
     DEFAULT_CONFIG = {
         "databases": {
             "MySQL": {
@@ -162,8 +164,6 @@ def sql_interface_main():
 
     # Configuration Section
     st.sidebar.header(f"Session ID: {st.session_state.session_id[:8]}")
-    # uploaded_config = st.sidebar.file_uploader("Upload YAML config", type=["yaml", "yml"],
-                                             # key=f"config_upload_{st.session_state.session_id}")
     uploaded_config = st.sidebar.file_uploader("Upload JSON config", type=["json"])
 
     # Load config for this session
