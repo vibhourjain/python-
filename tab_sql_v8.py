@@ -7,9 +7,9 @@ from pathlib import Path
 from io import StringIO, BytesIO
 import pandas as pd
 import io
+from urllib.parse import quote_plus
 import json
 import logging
-from urllib.parse import quote_plus
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,6 @@ def sql_interface_main():
     session_data = get_session_data()
 
     # Default configuration
-    --Default config
     DEFAULT_CONFIG = {
         "databases": {
             "MySQL": {
@@ -60,10 +59,10 @@ def sql_interface_main():
         }
     }
 
-    def load_config_json(uploaded_file=None):
-        if uploaded_file:
+    def load_config_json(upload_file=None):
+        if upload_file:
             try:
-                return json.load(uploaded_file)
+                return json.load(upload_file)
             except json.JSONDecodeError as e:
                 st.error(f"Invalid JSON format: {str(e)}")
                 return json.loads(json.dumps(DEFAULT_CONFIG))
@@ -74,27 +73,23 @@ def sql_interface_main():
         if uploaded_file:
             return yaml.safe_load(uploaded_file)
         return yaml.safe_load(StringIO(DEFAULT_CONFIG))
-
+        
     def redact_config(config):
-    redacted = config.copy()
-    if 'password' in redacted:
-        redacted['password'] = '*****'
-    if 'databases' in redacted:
-        for db_name, db_conf in redacted['databases'].items():
-            if 'password' in db_conf:
-                db_conf['password'] = '*****'
-            if 'format' in db_conf and '{password}' in db_conf['format']:
-                db_conf['format'] = db_conf['format'].replace('{password}', '*****')
-    return redacted
+        redacted = config.copy()
+        if 'password' in redacted:
+            redacted['password'] = '*****'
+        if 'databases' in redacted:
+            for db_name, db_conf in redacted['databases'].items():
+               if 'password' in db_conf:
+                   db_conf['password'] = '*****'
+               if 'format' in db_conf and '{password}' in db_conf['format']:
+                   db_conf['format'] = db_conf['format'].replace('{password}', '*****')
+        return redacted
 
     @st.cache_resource
     def init_engine(_session_id, db_config, username, password):
         try:
             format_str = db_config['format']
-            
-            # Verify critical parameters exist
-            if not all(k in db_config for k in ['server', 'driver']):
-                raise ValueError("Missing required connection parameters")
     
             # URL-encode special characters
             encoded_params = {
