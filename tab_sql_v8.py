@@ -2,7 +2,6 @@ import streamlit as st
 import sqlalchemy
 import yaml
 import uuid
-from datetime import date
 from pathlib import Path
 from io import StringIO, BytesIO
 import pandas as pd
@@ -29,6 +28,7 @@ def sql_interface_main():
             'credentials': {},
             'selected_db': None,
             'db_config': None,
+            'prev_db': None,
             'queries': {
                 'tab1': {'df': None, 'total': 0},
                 'tab3': {'df': None, 'total': 0},
@@ -80,24 +80,24 @@ def sql_interface_main():
             redacted['password'] = '*****'
         if 'databases' in redacted:
             for db_name, db_conf in redacted['databases'].items():
-               if 'password' in db_conf:
-                   db_conf['password'] = '*****'
-               if 'format' in db_conf and '{password}' in db_conf['format']:
-                   db_conf['format'] = db_conf['format'].replace('{password}', '*****')
+                if 'password' in db_conf:
+                    db_conf['password'] = '*****'
+                if 'format' in db_conf and '{password}' in db_conf['format']:
+                    db_conf['format'] = db_conf['format'].replace('{password}', '*****')
         return redacted
 
-    @st.cache_resource
+    @st.cache_resource(show_spinner=False)
     def init_engine(_session_id, db_config, username, password):
         try:
             format_str = db_config['format']
     
             # URL-encode special characters
             encoded_params = {
-            'driver': quote_plus(db_config.get('driver', '')),
-            'server': db_config.get('server', ''),
-            'database': db_config.get('database', ''),
-            'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
-            'charset': db_config.get('charset', 'sjis')
+                'driver': quote_plus(db_config.get('driver', '')),
+                'server': db_config.get('server', ''),
+                'database': db_config.get('database', ''),
+                'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
+                'charset': db_config.get('charset', 'sjis')
             }
     
             connection_string = format_str.format(
@@ -105,14 +105,13 @@ def sql_interface_main():
                 password=quote_plus(password),
                 **encoded_params
             )
-
-        st.write(f"Connection String: {connection_string}")  # Debug output
-        logger.info(f"Connection String: {connection_string}")  # Debug output
-        return sqlalchemy.create_engine(connection_string)
-    except Exception as e:
-        st.error(f"Configuration error: {str(e)}")
-        logger.error(f"Connection String: {connection_string}")  # Debug output
-        return None
+            st.write(f"Connection String: {connection_string}")  # Debug output
+            # logger.info(f"Connection String: {connection_string}")  # Debug output
+            return sqlalchemy.create_engine(connection_string)
+        except Exception as e:
+            st.error(f"Configuration error: {str(e)}")
+            logger.error(f"Connection String: {connection_string}")  # Debug output
+            return None
 
     def run_query(query, params=None):
         try:
