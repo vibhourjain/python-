@@ -10,7 +10,7 @@ import io
 import json
 import logging
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 def sql_interface_main():
 
@@ -73,19 +73,49 @@ def sql_interface_main():
             return yaml.safe_load(uploaded_file)
         return yaml.safe_load(StringIO(DEFAULT_CONFIG))
 
-    @st.cache_resource(show_spinner=False, hash_funcs={sqlalchemy.engine.Engine: id})
+    def redact_config(config):
+    redacted = config.copy()
+    if 'password' in redacted:
+        redacted['password'] = '*****'
+    if 'databases' in redacted:
+        for db_name, db_conf in redacted['databases'].items():
+            if 'password' in db_conf:
+                db_conf['password'] = '*****'
+            if 'format' in db_conf and '{password}' in db_conf['format']:
+                db_conf['format'] = db_conf['format'].replace('{password}', '*****')
+    return redacted
+
+    @st.cache_resource
     def init_engine(_session_id, db_config, username, password):
         try:
             format_str = db_config['format']
+            
+            # Verify critical parameters exist
+            if not all(k in db_config for k in ['server', 'driver']):
+                raise ValueError("Missing required connection parameters")
+    
+            # URL-encode special characters
+            encoded_params = {
+            'driver': quote_plus(db_config.get('driver', '')),
+            'server': db_config.get('server', ''),
+            'database': db_config.get('database', ''),
+            'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
+            'charset': db_config.get('charset', 'sjis')
+            }
+    
             connection_string = format_str.format(
-                user=username,
-                password=password,
-                **{k: v for k, v in db_config.items() if k not in ['format', 'username', 'password']}
+                user=quote_plus(username),
+                password=quote_plus(password),
+                **encoded_params
             )
-            return sqlalchemy.create_engine(connection_string)
-        except Exception as e:
-            st.error(f"Connection error: {e}")
-            return None
+
+        st.write(f"Connection String: {connection_string}")  # Debug output
+        logger.info(f"Connection String: {connection_string}")  # Debug output
+        return sqlalchemy.create_engine(connection_string)
+    except Exception as e:
+        st.error(f"Configuration error: {str(e)}")
+        logger.error(f"Connection String: {connection_string}")  # Debug output
+        return None
 
     def run_query(query, params=None):
         try:
@@ -137,7 +167,7 @@ def sql_interface_main():
     uploaded_config = st.sidebar.file_uploader("Upload JSON config", type=["json"])
 
     # Load config for this session
-    session_data['config'] = load_config(uploaded_config)
+    session_data['config'] = load_config_json(uploaded_config)
 
     # Database Selection
     db_names = list(session_data['config']['databases'].keys())
@@ -168,12 +198,11 @@ def sql_interface_main():
 
     session_data['db_config'] = session_data['config']['databases'][session_data['selected_db']]
 
-
     #Configuration Display
     with st.sidebar.expander("Current Configuration", expanded=False):
         st.write(f"**Active Database:** {session_data['selected_db']}")
         redacted = redact_config(session_data['db_config'])
-        st.json(redacted)  # Use st.json instead of st.code with yaml
+        st.json(redacted)
 
     # Credential Handling
     with st.sidebar.expander("Database Credentials", expanded=True):
