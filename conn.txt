@@ -1,0 +1,31 @@
+from urllib.parse import quote_plus
+
+# In the encoded_params section:
+encoded_params = {
+    'driver': quote_plus(db_config.get('driver', '')),
+    'server': db_config.get('server', ''),
+    'database': db_config.get('database', ''),
+    'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
+    'charset': db_config.get('charset', 'sjis')
+}
+
+
+DEFAULT_CONFIG = {
+    "databases": {
+        "MySQL": {
+            "type": "mysql",
+            "host": "localhost",
+            "port": 3306,
+            "format": "mysql://{user}:{password}@{host}:{port}/{dbname}"
+        },
+        "Sybase": {
+            "type": "sybase",
+            "server": "vibhour.asia.homework.com,57810",
+            "database": "agreen",
+            "driver": "SAP ASE ODBC Driver",
+            "encryptedpassword": "yes",
+            "charset": "sjis",
+            "format": "sybase+pyodbc://{user}:{password}@{server}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
+        }
+    }
+}
