@@ -73,7 +73,7 @@ def sql_interface_main():
         if uploaded_file:
             return yaml.safe_load(uploaded_file)
         return yaml.safe_load(StringIO(DEFAULT_CONFIG))
-        
+
     def redact_config(config):
         redacted = config.copy()
         if 'password' in redacted:
@@ -90,7 +90,6 @@ def sql_interface_main():
     def init_engine(_session_id, db_config, username, password):
         try:
             format_str = db_config['format']
-    
             # URL-encode special characters
             encoded_params = {
                 'driver': quote_plus(db_config.get('driver', '')),
@@ -99,18 +98,18 @@ def sql_interface_main():
                 'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
                 'charset': db_config.get('charset', 'sjis')
             }
-    
+
             connection_string = format_str.format(
                 user=quote_plus(username),
                 password=quote_plus(password),
                 **encoded_params
             )
-            st.write(f"Connection String: {connection_string}")  # Debug output
-            # logger.info(f"Connection String: {connection_string}")  # Debug output
+            st.write(f"Connection String: {connection_string}")
+            logger.info(f"Connection String: {connection_string}")
             return sqlalchemy.create_engine(connection_string)
         except Exception as e:
             st.error(f"Configuration error: {str(e)}")
-            logger.error(f"Connection String: {connection_string}")  # Debug output
+            logger.error(f"Connection String: {connection_string}")
             return None
 
     def run_query(query, params=None):
