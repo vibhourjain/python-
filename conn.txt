@@ -1,15 +1,4 @@
-from urllib.parse import quote_plus
-
-# In the encoded_params section:
-encoded_params = {
-    'driver': quote_plus(db_config.get('driver', '')),
-    'server': db_config.get('server', ''),
-    'database': db_config.get('database', ''),
-    'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
-    'charset': db_config.get('charset', 'sjis')
-}
-
-
+--Default config
 DEFAULT_CONFIG = {
     "databases": {
         "MySQL": {
@@ -28,4 +17,55 @@ DEFAULT_CONFIG = {
             "format": "sybase+pyodbc://{user}:{password}@{server}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
         }
     }
+}
+
+2. Modify config file
+import json
+
+def load_config(uploaded_file=None):
+    if uploaded_file:
+        try:
+            return json.load(uploaded_file)
+        except json.JSONDecodeError as e:
+            st.error(f"Invalid JSON format: {str(e)}")
+            return json.loads(json.dumps(DEFAULT_CONFIG))
+    else:
+        return DEFAULT_CONFIG.copy()
+
+
+3. Update file uploader
+uploaded_config = st.sidebar.file_uploader("Upload JSON config", type=["json"])
+
+4. Modify Configuration Display:
+with st.sidebar.expander("Current Configuration", expanded=False):
+    st.write(f"**Active Database:** {session_data['selected_db']}")
+    redacted = redact_config(session_data['db_config'])
+    st.json(redacted)  # Use st.json instead of st.code with yaml
+
+
+5. Example JSON Config File (save as config.json):
+{
+    "databases": {
+        "Sybase": {
+            "type": "sybase",
+            "server": "vibhour.asia.homework.com,57810",
+            "database": "agreen",
+            "driver": "SAP ASE ODBC Driver",
+            "encryptedpassword": "yes",
+            "charset": "sjis",
+            "format": "sybase+pyodbc://{user}:{password}@{server}/{database}?driver={driver}&EncryptedPassword={encryptedpassword}&charset={charset}"
+        }
+    }
+}
+
+6. Modified Sybase Connection Handling (in init_engine):
+from urllib.parse import quote_plus
+
+# In the encoded_params section:
+encoded_params = {
+    'driver': quote_plus(db_config.get('driver', '')),
+    'server': db_config.get('server', ''),
+    'database': db_config.get('database', ''),
+    'encryptedpassword': db_config.get('encryptedpassword', 'yes'),
+    'charset': db_config.get('charset', 'sjis')
 }
