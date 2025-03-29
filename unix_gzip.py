@@ -1,53 +1,5 @@
-#ssh_utils.py
-import paramiko
-import os
-
-def execute_ssh_command(hostname, username, password, command):
-    """Execute a command on a remote server via SSH and return output."""
-    try:
-        # Set up SSH connection
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname, username=username, password=password)
-
-        # Execute the first user command
-        stdin, stdout, stderr = ssh.exec_command(command)
-        output = stdout.read().decode()
-        error = stderr.read().decode()
-
-        ssh.close()
-        
-        if error:
-            return None, error
-        return output, None
-    except Exception as e:
-        return None, str(e)
-
-def find_files_in_remote_path(hostname, username, password, path, file_criteria):
-    """Find files on the remote host based on criteria in the given path."""
-    find_command = f"find {path} {file_criteria}"
-    output, error = execute_ssh_command(hostname, username, password, find_command)
-    
-    if error:
-        return None, error
-    else:
-        # Return list of files found
-        return output.splitlines(), None
-
-def gzip_files_on_remote_host(hostname, username, password, files):
-    """Gzip the given list of files on the remote host."""
-    for file in files:
-        gzip_command = f"gzip {file}"
-        output, error = execute_ssh_command(hostname, username, password, gzip_command)
-        if error:
-            return f"Error compressing file {file}: {error}"
-    
-    return "Files successfully compressed."
-
-
-##page_ssh.py
 import streamlit as st
-from utils.ssh_utils import find_files_in_remote_path, gzip_files_on_remote_host
+from utils_unix import find_files_in_remote_path, gzip_files_on_remote_host
 
 def page_ssh_file_operations():
     st.title("Remote File Operations")
@@ -98,18 +50,3 @@ def page_ssh_file_operations():
                             st.success(gzip_result)
                         else:
                             st.warning("Please select at least one file to gzip.")
-
-if __name__ == "__main__":
-    page_ssh_file_operations()
-
-
-streamlit_app/
-│── app.py              # Main entry point
-│── pages/
-│   │── page_sql.py     # SQL Query Runner page
-│   │── page_ssh.py     # Remote Unix Command Executor page
-│   │── page_ssh_file_operations.py  # SSH File Operations (new)
-│   │── page_monthly_task.py  # Monthly Task page
-│── utils/
-│   │── ssh_utils.py    # SSH utility functions (new)
-│── requirements.txt    # Python dependencies

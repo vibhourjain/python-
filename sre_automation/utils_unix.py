@@ -121,3 +121,24 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
         except Exception:
             pass
 
+def find_files_in_remote_path(hostname, username, password, path, file_criteria):
+    """Find files on the remote host based on criteria in the given path."""
+    find_command = f"find {path} {file_criteria}"
+    output, error = execute_ssh_command(hostname, username, password, find_command)
+    
+    if error:
+        return None, error
+    else:
+        # Return list of files found
+        return output.splitlines(), None
+
+def gzip_files_on_remote_host(hostname, username, password, files):
+    """Gzip the given list of files on the remote host."""
+    for file in files:
+        gzip_command = f"gzip {file}"
+        output, error = execute_ssh_command(hostname, username, password, gzip_command)
+        if error:
+            return f"Error compressing file {file}: {error}"
+    
+    return "Files successfully compressed."
+
