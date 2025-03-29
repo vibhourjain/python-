@@ -29,7 +29,7 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
     start_time = datetime.now()
     end_time = start_time + timedelta(seconds=timeout)
     output = ''
-    error = None  # Initialize error variable
+    error = None
     stage = 0
     password_attempts = 0
     security_attempts = 0
@@ -51,7 +51,7 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
             if client.get_transport() is None or not client.get_transport().is_active():
                 error = "SSH connection lost, aborting"
                 logger.error(error)
-                return "", error  # Return empty output with error message
+                return "", error
 
             ready, _, _ = select.select([chan], [], [], 1)
             if ready:
