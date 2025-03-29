@@ -6,20 +6,26 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def validate_email_domain(email_list, list_type, domain="homecbinet.com"):
-    logger.info("Validating E-Mail domain")
+def validate_email_domain(email_list, domain="homecbinet.com"):
+            invalid_emails = [email.strip() for email in email_list if not email.strip().endswith(f"@{domain}")]
+            if invalid_emails:
+                st.error(f"The following emails are not from the {domain} domain: {', '.join(invalid_emails)}")
+                return False
+            return True
+            
+            
+def validate_email_domain_v2(email_list, list_type, domain="homecbinet.com"):
     if list_type == 'to' and not email_list:
-        logger.info("Inside Validation E-Mail Rule 1")
-        st.error(f"No E-Mail specified in To list")
+        st.error(f"No E-Mail specified in To-list")
         return False
         
     if list_type == 'cc' and not email_list:
-        logger.info("Inside Validation E-Mail Rule 2")
-        st.write(f"No cc")
-        return True
+        st.write(f"No cc-list")
+        return False
+        
+        
     invalid_emails = [email.strip() for email in email_list if not email.lower().strip().endswith(f"@{domain}")]
     if invalid_emails:
-        logger.error(f"The following emails are not from the {domain} domain: {', '.join(invalid_emails)}")
         st.error(f"The following emails are not from the {domain} domain: {', '.join(invalid_emails)}")
         return False
     return True
@@ -55,3 +61,19 @@ def send_mailto_email(to_list, cc_list, subject, email_body):
 
     mailto_link = f"mailto:{to_email}?subject={quote(subject)}&body={encoded_body}"
     st.markdown(f'<a href="{mailto_link}" target="_blank">Click here to send email</a>', unsafe_allow_html=True)
+    
+def list_outlook_mailboxes():
+    try:
+        # Connect to Outlook
+        outlook = win32com.client.Dispatch("Outlook.Application")
+        namespace = outlook.GetNamespace("MAPI")
+
+        # Get all mailboxes
+        mailboxes = [namespace.Folders.Item(i+1).Name for i in range(namespace.Folders.Count)]
+
+        print("Configured Mailboxes in Outlook:")
+        for idx, mailbox in enumerate(mailboxes, start=1):
+            print(f"{idx}. {mailbox}")
+
+    except Exception as e:
+        print(f"Error: {e}")
