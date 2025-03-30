@@ -1,0 +1,209 @@
+2025-03-30 16:18:55,015 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+2025-03-30 16:18:55,016 - INFO - Using dates: 2025-03-30 to 2025-03-30
+2025-03-30 16:18:55,095 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+With parameters: start_date=2025-03-30, end_date=2025-03-30
+2025-03-30 16:18:55,095 - ERROR - Oracle Error: DPY-4008: no bind placeholder named ":start_date" was found in the SQL text
+Full query: SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+2025-03-30 16:19:34,600 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+2025-03-30 16:19:34,600 - INFO - Using dates: 2025-03-30 to 2025-03-30
+2025-03-30 16:19:34,636 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+With parameters: start_date=2025-03-30, end_date=2025-03-30
+2025-03-30 16:19:34,637 - ERROR - Oracle Error: DPY-4008: no bind placeholder named ":start_date" was found in the SQL text
+Full query: SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE('2015-01-01', 'YYYY-MM-DD') AND TO_DATE('2018-01-01', 'YYYY-MM-DD')
+GROUP BY hire_date
+ORDER BY hire_date 
+2025-03-30 16:23:58,634 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+2025-03-30 16:23:58,635 - INFO - Using dates: 2016-01-01 to 2025-03-30
+2025-03-30 16:23:58,801 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt, hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+With parameters: start_date=2016-01-01, end_date=2025-03-30
+2025-03-30 16:23:58,805 - INFO - Fetched 50 rows from Oracle
+2025-03-30 16:23:58,811 - ERROR - Unexpected error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 63, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConversionException: Conversion Error: Unimplemented type for cast (BIGINT -> DATE)
+2025-03-30 16:27:22,631 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+2025-03-30 16:27:22,631 - INFO - Using dates: 2016-01-01 to 2025-03-30
+2025-03-30 16:27:22,687 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+With parameters: start_date=2016-01-01, end_date=2025-03-30
+2025-03-30 16:27:22,692 - INFO - Fetched 50 rows from Oracle
+2025-03-30 16:27:22,696 - ERROR - Unexpected error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 63, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConversionException: Conversion Error: Unimplemented type for cast (BIGINT -> DATE)
+2025-03-30 16:32:30,283 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+2025-03-30 16:32:30,283 - INFO - Using dates: 2016-01-01 to 2025-03-30
+2025-03-30 16:32:30,410 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+With parameters: start_date=2016-01-01, end_date=2025-03-30
+2025-03-30 16:32:30,413 - INFO - Fetched 50 rows from Oracle
+2025-03-30 16:32:30,417 - ERROR - Unexpected error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 63, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConversionException: Conversion Error: Unimplemented type for cast (BIGINT -> DATE)
+2025-03-30 16:32:33,737 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+2025-03-30 16:32:33,739 - INFO - Using dates: 2016-01-01 to 2025-03-30
+2025-03-30 16:32:33,813 - INFO - Executing Oracle query:
+SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+With parameters: start_date=2016-01-01, end_date=2025-03-30
+2025-03-30 16:32:33,815 - INFO - Fetched 50 rows from Oracle
+2025-03-30 16:32:33,820 - ERROR - Unexpected error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 63, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConversionException: Conversion Error: Unimplemented type for cast (BIGINT -> DATE)
+2025-03-30 16:35:00,068 - INFO - Metadata SQL Query: SELECT count(employee_ID) employee_cnt,TRUNC( hire_date) AS hire_date
+FROM employees 
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') 
+                   AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date 
+2025-03-30 16:35:00,149 - INFO - Executing Oracle query with params: 2016-03-30 - 2025-03-30
+2025-03-30 16:35:00,151 - INFO - Fetched 41 rows from Oracle
+2025-03-30 16:35:00,153 - INFO - DuckDB schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:35:00,162 - INFO - Converted DataFrame dtypes:
+EMPLOYEE_CNT    object
+HIRE_DATE       object
+dtype: object
+2025-03-30 16:35:00,167 - ERROR - Unexpected error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 105, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConversionException: Conversion Error: Unimplemented type for cast (INTEGER -> DATE)
+2025-03-30 16:46:49,163 - INFO - Using table: table_MADMACS
+2025-03-30 16:46:49,208 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:46:49,382 - INFO - Executing Oracle query with params: {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:46:49,386 - INFO - Fetched 0 rows from Oracle
+2025-03-30 16:49:32,469 - INFO - Using table: table_MADMACS
+2025-03-30 16:49:32,499 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:49:32,564 - INFO - Executing Oracle query with params: {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:49:32,570 - INFO - Fetched 0 rows from Oracle
+2025-03-30 16:49:56,694 - INFO - Using table: table_MADMACS
+2025-03-30 16:49:56,733 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:49:56,807 - INFO - Executing Oracle query with params: {'start_date': '2016-03-03', 'end_date': '2025-03-30'}
+2025-03-30 16:49:56,810 - INFO - Fetched 45 rows from Oracle
+2025-03-30 16:56:01,605 - INFO - Using table: table_MADMACS
+2025-03-30 16:56:01,630 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:56:01,777 - INFO - Executing Oracle query with params: {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:56:01,781 - INFO - Fetched 0 rows from Oracle
+2025-03-30 16:56:15,894 - INFO - Using table: table_MADMACS
+2025-03-30 16:56:15,936 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:56:16,012 - INFO - Executing Oracle query with params: {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:56:16,014 - INFO - Fetched 67 rows from Oracle
+2025-03-30 16:58:58,276 - INFO - Using table: table_MADMACS
+2025-03-30 16:58:58,301 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:58:58,376 - INFO - Executing Oracle query with params: {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:58:58,379 - INFO - Fetched 0 rows from Oracle
+2025-03-30 16:59:07,532 - INFO - Using table: table_MADMACS
+2025-03-30 16:59:07,574 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 16:59:07,662 - INFO - Executing Oracle query with params: {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 16:59:07,663 - INFO - Fetched 67 rows from Oracle
+2025-03-30 17:11:37,619 - INFO - Using table: table_MADMACS
+2025-03-30 17:11:37,666 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 17:11:37,806 - INFO - Executing Oracle query with params: {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 17:11:37,814 - INFO - Fetched 0 rows from Oracle
+2025-03-30 17:11:46,596 - INFO - Using table: table_MADMACS
+2025-03-30 17:11:46,640 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 17:11:46,697 - INFO - Executing Oracle query with params: {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 17:11:46,697 - INFO - Fetched 67 rows from Oracle
+2025-03-30 21:57:25,303 - INFO - Using table: table_MADMACS
+2025-03-30 21:57:25,343 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 21:57:25,498 - INFO - Executing Oracle query: SELECT TRUNC( hire_date) AS hire_date,count(employee_ID) employee_cnt
+FROM employees
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date with params {'start_date': '2025-03-30', 'end_date': '2025-03-30'}
+2025-03-30 21:57:35,318 - INFO - Using table: table_MADMACS
+2025-03-30 21:57:35,388 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 21:57:35,453 - INFO - Executing Oracle query: SELECT TRUNC( hire_date) AS hire_date,count(employee_ID) employee_cnt
+FROM employees
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date with params {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 21:57:35,456 - INFO - Fetched 67 rows from Oracle
+2025-03-30 21:57:35,478 - INFO - Data inserted into table_MADMACS successfully
+2025-03-30 22:02:10,616 - INFO - Using table: table_MADMACS
+2025-03-30 22:02:10,645 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 22:02:10,705 - INFO - Executing Oracle query: SELECT TRUNC( hire_date) AS hire_date,count(employee_ID) employee_cnt
+FROM employees
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date with params {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 22:02:10,707 - INFO - Fetched 67 rows from Oracle
+2025-03-30 22:02:10,718 - INFO - Data inserted into table_MADMACS successfully
+2025-03-30 22:22:37,788 - INFO - Using table: table_MADMACS
+2025-03-30 22:22:37,862 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 22:22:37,979 - INFO - Executing Oracle query: SELECT TRUNC( hire_date) AS hire_date,count(employee_ID) employee_cnt
+FROM employees
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date with params {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 22:22:37,979 - INFO - Fetched 67 rows from Oracle
+2025-03-30 22:22:37,997 - INFO - Data inserted into table_MADMACS successfully
+2025-03-30 22:53:13,498 - INFO - Using table: table_MADMACS
+2025-03-30 22:53:13,543 - INFO - Schema for table_MADMACS: {'hire_date': 'DATE', 'employee_cnt': 'INTEGER'}
+2025-03-30 22:53:13,648 - INFO - Executing Oracle query: SELECT TRUNC( hire_date) AS hire_date,count(employee_ID) employee_cnt
+FROM employees
+WHERE hire_date BETWEEN TO_DATE(:start_date, 'YYYY-MM-DD') AND TO_DATE(:end_date, 'YYYY-MM-DD')
+GROUP BY hire_date with params {'start_date': '2015-03-30', 'end_date': '2025-03-30'}
+2025-03-30 22:53:13,653 - INFO - Fetched 67 rows from Oracle
+2025-03-30 22:53:13,664 - ERROR - Critical error occurred:
+Traceback (most recent call last):
+  File "C:\Users\vibho\ado-0001\python-\cap_fn3.py", line 112, in fetch_and_execute_query
+    conn.execute(f"INSERT INTO {table_name} SELECT * FROM oracle_result")
+duckdb.duckdb.ConstraintException: Constraint Error: Duplicate key "hire_date: 2015-09-21" violates primary key constraint. If this is an unexpected constraint violation please double check with the known index limitations section in our documentation (https://duckdb.org/docs/sql/indexes).
