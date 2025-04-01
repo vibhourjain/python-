@@ -16,7 +16,12 @@ validate_file() {
     # Check for bad record (line with only delimiters ~)
     bad_record=$(sed '1d;$d' "$file" | grep -E '^~+ *~*$')
 
-    # Validation checks
+    if [[ "$record_count" -eq 1 && "$actual_count" -eq 1 && -n "$bad_record" ]]; then
+    echo "Bad file detected"
+fi
+
+
+# Validation checks
     if [[ ! "$header" =~ ^\"HEADER\"[[:space:]][0-9]{8}$ ]]; then
         echo "BAD FILE: Header is incorrect"
     elif [[ ! "$footer" =~ ^\"FOOTER\"[[:space:]][0-9]+$ ]]; then
@@ -87,3 +92,6 @@ print "Parameter 2: $param2\n";
 print "Parameter 3: $param3\n";
 print "Parameter 4: $param4\n";
 print "Parameter 5: $param5\n";
+
+
+
