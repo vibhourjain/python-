@@ -1,0 +1,45 @@
+validate_file() {
+    local file="$1"
+    local header footer record_count actual_count bad_record
+
+    # Read the first line (HEADER) without trimming spaces
+    header=$(head -n 1 "$file")
+    
+    # Read the last line (FOOTER) without trimming spaces
+    footer=$(tail -n 1 "$file")
+
+    # Extract expected record count from footer (number after "FOOTER")
+    record_count=$(echo "$footer" | awk '{print $2}')
+
+    # If record_count is not 1, skip validation
+    if [[ "$record_count" -ne 1 ]]; then
+        echo "No validation needed: Footer record count is not 1."
+        return
+    fi
+
+    # Count actual data lines (excluding header and footer), trimming spaces from records
+    actual_count=$(sed '1d;$d' "$file" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | wc -l)
+
+    # Check for bad record (line with only delimiters ~), trimming spaces from records
+    bad_record=$(sed '1d;$d' "$file" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^~+$')
+
+    # Check if the file is bad or good based on actual_count and bad_record
+    if [[ "$actual_count" -eq 1 && -n "$bad_record" ]]; then
+        echo "BAD FILE: Contains only invalid record (delimiters only)"
+    elif [[ "$actual_count" -gt 0 && -z "$bad_record" ]]; then
+        echo "GOOD FILE: Records are valid (not just delimiters)"
+    else
+        echo "BAD FILE: No valid records found"
+    fi
+}
+#bad_record=$(sed -e '1d;$d' -e 's/^[[:space:]]*//;s/[[:space:]]*$//' "$file" | grep -E '^[~\ ]*$')
+
+Here:
+
+-e '1d;$d': Deletes the first and last lines (HEADER and FOOTER).
+
+-e 's/^[[:space:]]*//;s/[[:space:]]*$//': Trims leading and trailing spaces.
+
+grep -E '^[~\ ]*$': Filters lines containing only delimiters and spaces.
+
+
