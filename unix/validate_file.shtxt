@@ -65,3 +65,25 @@ log_message() {
 # Usage
 log_message "INFO" "Script started."
 log_message "ERROR" "File not found!"
+
+
+
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+# Check if exactly 5 parameters are provided
+if (@ARGV != 5) {
+    die "Usage: $0 param1 param2 param3 param4 param5\n";
+}
+
+# Assign parameters to variables
+my ($param1, $param2, $param3, $param4, $param5) = @ARGV;
+
+# Print parameters
+print "Hello, World!\n";
+print "Parameter 1: $param1\n";
+print "Parameter 2: $param2\n";
+print "Parameter 3: $param3\n";
+print "Parameter 4: $param4\n";
+print "Parameter 5: $param5\n";
