@@ -1,0 +1,67 @@
+validate_file() {
+    local file="$1"
+
+    # Read the first line (HEADER)
+    header=$(head -n 1 "$file")
+    
+    # Read the last line (FOOTER)
+    footer=$(tail -n 1 "$file")
+
+    # Extract expected record count from footer (number after "FOOTER")
+    record_count=$(echo "$footer" | awk '{print $2}')
+
+    # Count actual data lines (excluding header and footer)
+    actual_count=$(sed '1d;$d' "$file" | wc -l)
+
+    # Check for bad record (line with only delimiters ~)
+    bad_record=$(sed '1d;$d' "$file" | grep -E '^~+ *~*$')
+
+    # Validation checks
+    if [[ ! "$header" =~ ^\"HEADER\"[[:space:]][0-9]{8}$ ]]; then
+        echo "BAD FILE: Header is incorrect"
+    elif [[ ! "$footer" =~ ^\"FOOTER\"[[:space:]][0-9]+$ ]]; then
+        echo "BAD FILE: Footer is incorrect"
+    elif [[ $actual_count -eq 0 ]]; then
+        echo "BAD FILE: No valid records found"
+    elif [[ -n "$bad_record" ]]; then
+        echo "BAD FILE: Contains empty delimiter-only record"
+    elif [[ "$actual_count" -ne "$record_count" ]]; then
+        echo "BAD FILE: Footer count ($record_count) does not match actual records ($actual_count)"
+    else
+        echo "GOOD FILE"
+    fi
+}
+
+#!/bin/bash
+
+# Define the variable that controls the replacement
+variable_value=1  # Change this to test
+
+# Define the command (multi-line for readability)
+cmd="${perldir}/tse_script.p \
+  -A param1 \
+  -B param2 \
+  -S {tp} \
+  -X paramX \
+  -M {tpsfile_sus} \
+  -Y paramY \
+  -Z paramZ"
+
+# Replace `-M {tpsfile_sus}` with `-M NA` if variable_value is 1
+if [ "$variable_value" -eq 1 ]; then
+    cmd=${cmd//"-M {tpsfile_sus}"/"-M NA"}  # String replacement
+fi
+
+# Print and execute the final command
+echo "Running: $cmd"
+eval "$cmd"
+
+
+
+log_message() { 
+    echo "[$(date +"%Y-%m-%d %H:%M:%S")] [$1] $2" | tee -a script.log; 
+}
+
+# Usage
+log_message "INFO" "Script started."
+log_message "ERROR" "File not found!"
