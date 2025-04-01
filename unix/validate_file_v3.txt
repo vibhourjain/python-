@@ -1,0 +1,38 @@
+validate_file() {
+    local file="$1"
+    local header footer record_count actual_count bad_record
+
+    # Read the first line (HEADER)
+    header=$(head -n 1 "$file")
+    
+    # Read the last line (FOOTER)
+    footer=$(tail -n 1 "$file")
+
+    # Extract the expected record count from the footer (number after "FOOTER")
+    record_count=$(echo "$footer" | awk '{print $2}')
+
+    # If record_count is not 1, skip validation
+    if [[ "$record_count" -ne 1 ]]; then
+        echo "No validation needed: Footer record count is not 1."
+        return
+    fi
+
+    # Count actual data lines (excluding header and footer)
+    actual_count=$(sed '1d;$d' "$file" | wc -l)
+
+    # Get the record line, excluding header and footer
+    record=$(sed '1d;$d' "$file")
+
+    # Check if the record contains any alpha or numeric characters
+    # The regex `[^a-zA-Z0-9]` matches any character that is **not** a letter or number
+    bad_record=$(echo "$record" | grep -E '^[~\ ]*$')
+
+    # If no alpha or numeric characters are found, mark the record as bad
+    if [[ -z "$bad_record" && "$actual_count" -eq 1 ]]; then
+        echo "BAD FILE: Record contains no valid alpha or numeric characters, only delimiters."
+    elif [[ "$actual_count" -eq 0 ]]; then
+        echo "BAD FILE: No valid records found"
+    else
+        echo "GOOD FILE: Record is valid."
+    fi
+}
