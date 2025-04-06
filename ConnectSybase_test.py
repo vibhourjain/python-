@@ -34,7 +34,7 @@ def connect_to_database(instance, db_username, db_password):
                 DATABASE={DATABASE};
                 UID={USERNAME};
                 PWD={PASSWORD};
-                EncryptPassword=yes;
+                EncryptPassword=yes ;
                 charset=sjis
                 """
 
@@ -63,7 +63,7 @@ def execute_query(conn, sql, params=None):
         return None
     finally:
         conn.close()
-        logger.info(f"Database connection closed.")
+        logger.info("Database connection closed.")
 
 
 def prepare_sql(sql_template, replacements=None, params=None):
