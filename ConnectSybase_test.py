@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def connect_to_database(instance, db_username,db_password):
+def connect_to_database(instance, db_username, db_password):
     INSTANCES = {
         "SD1": {"SERVER": "localhost", "PORT": "57810", "DATABASE": "avgpr"},
         "SD2": {"SERVER": "localhost", "PORT": "57811", "DATABASE": "avgpr"},
@@ -23,27 +23,27 @@ def connect_to_database(instance, db_username,db_password):
         SERVER = INSTANCES[instance]['SERVER']
         PORT = INSTANCES[instance]['PORT']
         DATABASE = INSTANCES[instance]['DATABASE']
-        USERNAME= db_username
+        USERNAME = db_username
         PASSWORD = db_password
         DRIVER = "Adaptive Server Enterprise"
 
         connection_strings = f"""
-        DRIVER={{{DRIVER}}};
-        SERVER={SERVER};
-        PORT={PORT};
-        DATABASE={DATABASE};
-        UID={USERNAME};
-        PWD={PASSWORD};
-        EncryptPassword=yes;
-        charset=sjis
-"""
+                DRIVER={{{DRIVER}}};
+                SERVER={SERVER};
+                PORT={PORT};
+                DATABASE={DATABASE};
+                UID={USERNAME};
+                PWD={PASSWORD};
+                EncryptPassword=yes;
+                charset=sjis
+                """
 
         conn = pyodbc.connect(connection_strings)
         logger.info(f"Connected to {instance}")
         return conn
     except Exception as e:
         st.error(f"Failed to connect to {instance}: {e}")
-        logger.info(f"Failed to connect to {instance}: {e}")
+        logger.error(f"Failed to connect to {instance}: {e}")
         return None
 
 
@@ -51,11 +51,11 @@ def execute_query(conn, sql, params=None):
     logger.info(f"Query executed: {sql} | Params: {params}")
     try:
         cursor = conn.cursor()
-        cursor.execute(sql,params)
+        cursor.execute(sql, params)
         rows = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         df = pd.DataFrame.from_records(rows, columns=columns)
-        logger.info(f"Query Executed: {sql} | Params: {params}")
+        logger.info(f"Query executed: {sql} | Params: {params}")
         return df
     except Exception as e:
         st.error(f"Error executing query: {e}")
@@ -63,7 +63,7 @@ def execute_query(conn, sql, params=None):
         return None
     finally:
         conn.close()
-        logger.error(f"Database connection closed.")
+        logger.info(f"Database connection closed.")
 
 
 def prepare_sql(sql_template, replacements=None, params=None):
@@ -81,10 +81,10 @@ def prepare_sql(sql_template, replacements=None, params=None):
                 sql_template = sql_template.replace(f"{{{key}}}", value)
 
         logger.info(f"Prepared SQL Query: {sql_template}")
-        logging.info(f"Query Parameters: {params if params else 'None'}")
+        logger.info(f"Query Parameters: {params if params else 'None'}")
         return sql_template, params or ()
 
     except Exception as e:
-        logging.error(f"Error preparing SQL: {e}")
+        logger.error(f"Error preparing SQL: {e}")
         st.error(f"Error preparing SQL: {e}")
         return None, None
