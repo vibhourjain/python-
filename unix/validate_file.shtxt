@@ -141,3 +141,9 @@ validate_file() {
         echo "GOOD FILE"
     fi
 }
+
+
+
+"HEADER" 20250328
+         ~     ~1234            ~              ~~ ~ ~     ~ ~ ~
+"FOOTER" 1

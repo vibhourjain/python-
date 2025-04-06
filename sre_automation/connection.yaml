@@ -23,3 +23,16 @@ databases:
     port: 1600
     service_name: xepdb1
     format: "oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service_name}"
+    
+    
+ 
+    name:hr
+    type: oracle
+    host: localhost
+    port: 1521
+    service_name: xepdb1
+    username:hr
+    password:hr
+    
+
+in my duck_db I will have table 
