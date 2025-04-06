@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
-def connect_to_sybase(instance, db_username,db_password):
+def connect_to_sybase(instance, db_username, db_password):
     INSTANCES = {
         "SD1": {"SERVER": "localhost", "PORT": "57810", "DATABASE": "avgpr"},
         "SD2": {"SERVER": "localhost", "PORT": "57811", "DATABASE": "avgpr"},
@@ -15,21 +15,21 @@ def connect_to_sybase(instance, db_username,db_password):
     SERVER = INSTANCES[instance]['SERVER']
     PORT = INSTANCES[instance]['PORT']
     DATABASE = INSTANCES[instance]['DATABASE']
-    USERNAME= db_username
+    USERNAME = db_username
     PASSWORD = db_password
     DRIVER = "Adaptive Server Enterprise"
 
-    #Establish connection
+    # Establish connection
     connection_strings = f"""
-    DRIVER={{{DRIVER}}};
-    SERVER={SERVER};
-    PORT={PORT};
-    DATABASE={DATABASE};
-    UID={USERNAME};
-    PWD={PASSWORD};
-    EncryptPassword=yes;
-    charset=sjis 
-    """
+        DRIVER={{{DRIVER}}};
+        SERVER={SERVER};
+        PORT={PORT};
+        DATABASE={DATABASE};
+        UID={USERNAME};
+        PWD={PASSWORD};
+        EncryptPassword=yes;
+        charset=sjis 
+        """
 
     try:
         conn = pyodbc.connect(connection_strings)
@@ -42,7 +42,7 @@ def execute_query(conn, sql, start_date, end_date):
     try:
         cursor = conn.cursor()
         sql = sql.replace("{start_date}", start_date).replace("{end_date}", end_date)
-        cursor.exxecute(sql)
+        cursor.execute(sql)
         rows = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
         df = pd.DataFrame.from_records(rows, columns=columns)
