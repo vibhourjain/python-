@@ -77,7 +77,7 @@ def execute_query(conn, query, params=()):
 # -----------------------------
 # Prepare SQL Function
 # -----------------------------
-def prepare_sql(sql_template, replacements=None, in_clause_values=None, in_clause_key=None):
+def prepare_sql_inclause(sql_template, replacements=None, in_clause_values=None, in_clause_key=None):
     """
     Handles:
     - Positional SQL parameters (?, ?, ?)
@@ -116,3 +116,13 @@ def prepare_sql(sql_template, replacements=None, in_clause_values=None, in_claus
         logger.error(f"Error preparing SQL: {e}")
         st.error(f"Error preparing SQL: {e}")
         return None, None
+
+
+def prepare_sql(sql_template, replacements):
+    for key, value in replacements.items():
+        if isinstance(value, list):
+            value = ",".join(f"'{v.strip()}'" for v in value)
+        elif isinstance(value, str) and ',' in value:
+            value = ",".join(f"'{v.strip()}'" for v in value.split(','))
+        sql_template = sql_template.replace(f"{{{key}}}", value)
+    return sql_template, {}
