@@ -100,10 +100,17 @@ def main():
         selected_date_column = st.selectbox("Select Date Column", date_columns)
         reference_date = st.date_input("Select Reference Date", datetime.today())
 
+        # data_key = f"data_{selected_app}"
+        # if st.button("Fetch Data") or data_key in st.session_state:
+        #     if data_key not in st.session_state:
+        #         st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
+        #     df = st.session_state[data_key]
+
         data_key = f"data_{selected_app}"
-        if st.button("Fetch Data") or data_key in st.session_state:
-            if data_key not in st.session_state:
-                st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
+        if st.button("Fetch Data"):
+            st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
+
+        if data_key in st.session_state:
             df = st.session_state[data_key]
 
             if df.empty:
