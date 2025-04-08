@@ -122,6 +122,44 @@ def data_loader():
                 except Exception as e:
                     st.error(f"Error processing {row['query_name']}: {e}")
 
+# Page to edit metadata
+
+def metadata_editor():
+    st.header("Edit Metadata")
+    initialize_duckdb()
+
+    # id,
+    # query_name,
+    # sql_text,
+    # target_table,
+    # source_database,
+    # application,
+    # execution_order,
+
+    with duckdb.connect(DUCKDB_PATH) as conn:
+        ids = conn.execute(f"SELECT query_name FROM {METADATA_TABLE}").fetchdf()["id"].tolist()
+
+    selected_query_name = st.selectbox("Select Metadata Query Name to Edit", ids)
+
+    if selected_query_name:
+        with duckdb.connect(DUCKDB_PATH) as conn:
+            row = conn.execute(f"SELECT * FROM {METADATA_TABLE} WHERE id = ?", (selected_query_name,)).fetchone()
+
+        query_name = st.text_input("Query Name", row[1])
+        sql_text = st.text_area("SQL Text", row[2])
+        target_table = st.text_input("Target DuckDB Table", row[3])
+        source_database = st.text_input("Sybase Instance", row[4])
+        application = st.text_input("Application Name", row[5])
+
+        if st.button("Update Metadata"):
+            with duckdb.connect(DUCKDB_PATH) as conn:
+                conn.execute(f"""
+                    UPDATE {METADATA_TABLE}
+                    SET query_name = ?, sql_text = ?, target_table = ?, source_database = ?, application = ?
+                    WHERE query_name = ?
+                """, (query_name, sql_text, target_table, source_database, application, selected_query_name))
+                st.success("Metadata updated successfully!")
+
 # Free SQL Runner Page
 def duckdb_sql_runner():
     st.header("Run Custom SQL on DuckDB")
@@ -142,7 +180,7 @@ def duckdb_sql_runner():
 
 # Streamlit navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Metadata Setup", "Run Queries", "DuckDB SQL Runner"])
+page = st.sidebar.radio("Go to", ["Metadata Setup", "Metadata Editor","Run Queries", "DuckDB SQL Runner"])
 
 if page == "Metadata Setup":
     metadata_manager()
@@ -150,3 +188,5 @@ elif page == "Run Queries":
     data_loader()
 elif page == "DuckDB SQL Runner":
     duckdb_sql_runner()
+elif page == "Metadata Editor":
+    metadata_editor()
