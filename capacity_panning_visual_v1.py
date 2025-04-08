@@ -74,7 +74,7 @@ def main():
     st.title("Interactive Data Visualization")
 
     conn = duckdb.connect(DB_PATH)
-    apps = conn.execute("SELECT application_name FROM metadata").fetchdf()["application_name"].tolist()
+    apps = conn.execute("SELECT application_name FROM metadata order by application_name ").fetchdf()["application_name"].tolist()
     conn.close()
 
     selected_app = st.selectbox("Select Application", apps)
