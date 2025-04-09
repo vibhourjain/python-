@@ -1,0 +1,49 @@
+import plotly.express as px
+import pandas as pd
+from pptx import Presentation
+from pptx.util import Inches
+import plotly.io as pio
+
+# Example DataFrame
+df = pd.DataFrame({
+    'date': pd.to_datetime(['2024-01-15', '2024-02-20', '2025-03-10']),
+    'value': [100, 200, 300]
+})
+
+# Create a Plotly graph (line graph for daily data)
+fig_daily = px.line(df, x='date', y='value', title='Daily Line Chart')
+
+# Save the graph as an image
+img_path_daily = 'daily_line_chart.png'
+pio.write_image(fig_daily, img_path_daily)
+
+# Load your existing PowerPoint template
+ppt_template_path = 'template.pptx'
+prs = Presentation(ppt_template_path)
+
+# Page 3 for daily graph (Slide 2, as slide indexing starts at 0)
+slide_daily = prs.slides[2]
+
+# Add the daily graph to page 3 (slide 2)
+left = Inches(1)
+top = Inches(1)
+slide_daily.shapes.add_picture(img_path_daily, left, top)
+
+# Create a bar graph for the next slide (e.g., bar graph)
+fig_bar = px.bar(df, x='date', y='value', title='Bar Chart')
+
+# Save the bar graph as an image
+img_path_bar = 'bar_chart.png'
+pio.write_image(fig_bar, img_path_bar)
+
+# Page 4 for bar graph (Slide 3)
+slide_bar = prs.slides[3]
+
+# Add the bar graph to page 4 (slide 3)
+slide_bar.shapes.add_picture(img_path_bar, left, top)
+
+# Save the PowerPoint with the graphs
+pptx_filename = 'updated_presentation.pptx'
+prs.save(pptx_filename)
+
+print(f'PowerPoint saved as {pptx_filename}')
