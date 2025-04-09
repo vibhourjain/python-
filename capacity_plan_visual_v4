@@ -1,0 +1,169 @@
+import streamlit as st
+import duckdb
+import pandas as pd
+import plotly.express as px
+from datetime import datetime, timedelta
+
+# Persistent connection handler
+@st.cache_resource
+def get_db_connection():
+    return duckdb.connect(database='your_database.duckdb', read_only=True)
+
+def get_table_list(conn):
+    """Fetch all distinct tables from query_metadata"""
+    return conn.execute("""
+        SELECT DISTINCT target_table 
+        FROM query_metadata
+        ORDER BY target_table
+    """).fetchdf()['target_table'].tolist()
+
+def fetch_table_data(conn, table_name, reference_date):
+    """Fetch only the required 13 months data using DuckDB date functions"""
+    try:
+        return conn.execute(f"""
+            SELECT 
+                Application_type, 
+                Volume, 
+                Period
+            FROM {table_name}
+            WHERE 
+                CAST(Period AS DATE) BETWEEN 
+                    DATE_SUB(CAST('{reference_date}' AS DATE), INTERVAL 13 MONTH) AND
+                    CAST('{reference_date}' AS DATE)
+            ORDER BY Period
+        """).fetchdf()
+    except Exception as e:
+        st.error(f"Error fetching data from {table_name}: {str(e)}")
+        return None
+
+def create_visualizations(df, table_name):
+    """Create visualizations from pre-filtered data"""
+    if df.empty:
+        return None, None
+    
+    # Convert Period to datetime (already filtered by SQL)
+    df['Period'] = pd.to_datetime(df['Period'])
+    
+    # Create consistent color mapping
+    app_types = sorted(df['Application_type'].unique())
+    colors = px.colors.qualitative.Plotly
+    color_map = {app: colors[i % len(colors)] for i, app in enumerate(app_types)}
+    
+    # LINE CHART
+    line_fig = px.line(
+        df,
+        x='Period',
+        y='Volume',
+        color='Application_type',
+        title=f'{table_name} - Volume Trend (Last 13 Months)',
+        labels={'Period': '', 'Volume': 'Volume'},
+        color_discrete_map=color_map,
+        height=500
+    )
+    line_fig.update_xaxes(
+        tickformat="%b-%Y",
+        tickvals=df['Period'].unique()[::2],  # Show every other month
+        tickangle=45
+    )
+    line_fig.update_layout(
+        hovermode='x unified',
+        legend_title_text='Application Type'
+    )
+    
+    # MULTI-BAR CHART with proper grouping
+    df['Month-Year'] = df['Period'].dt.strftime('%b-%Y')
+    
+    bar_fig = px.bar(
+        df,
+        x='Month-Year',
+        y='Volume',
+        color='Application_type',
+        title=f'{table_name} - Monthly Comparison',
+        labels={'Month-Year': '', 'Volume': 'Volume'},
+        color_discrete_map=color_map,
+        barmode='group',
+        category_orders={'Month-Year': df['Month-Year'].unique()},
+        height=500
+    )
+    
+    bar_fig.update_layout(
+        xaxis={'tickangle': 45, 'tickvals': df['Month-Year'].unique()[::2]},
+        bargap=0.15,
+        bargroupgap=0.1,
+        legend_title_text='Application Type'
+    )
+    
+    return line_fig, bar_fig
+
+# Streamlit UI
+st.set_page_config(layout="wide")
+st.title('Automated Table Analysis Dashboard')
+
+# Date input
+reference_date = st.date_input(
+    "Select Reference Date",
+    datetime.today(),
+    key='date_selector'
+)
+
+if reference_date:
+    conn = None
+    try:
+        conn = get_db_connection()
+        all_tables = get_table_list(conn)
+        
+        if not all_tables:
+            st.warning("No tables found in query_metadata")
+            st.stop()
+            
+        progress_bar = st.progress(0)
+        total_tables = len(all_tables)
+        
+        for i, table_name in enumerate(all_tables):
+            with st.expander(f"📊 {table_name}", expanded=(i < 2)):  # First 2 expanded by default
+                df = fetch_table_data(conn, table_name, reference_date)
+                
+                if df is None or df.empty:
+                    st.warning(f"No data available for {table_name} in selected date range")
+                    continue
+                    
+                line_fig, bar_fig = create_visualizations(df, table_name)
+                
+                st.plotly_chart(line_fig, use_container_width=True)
+                st.plotly_chart(bar_fig, use_container_width=True)
+                
+                # Show raw data toggle
+                if st.checkbox(f"Show raw data for {table_name}", False):
+                    st.dataframe(df.sort_values('Period'))
+            
+            progress_bar.progress((i + 1) / total_tables)
+        
+        st.success(f"Processed {len(all_tables)} tables successfully!")
+    
+    except Exception as e:
+        st.error(f"Database error: {str(e)}")
+    finally:
+        if conn:
+            conn.close()
+
+# CSS improvements
+st.markdown("""
+<style>
+    .stPlotlyChart {
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .stExpander {
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        padding: 0 1rem;
+        border-left: 4px solid #f0f2f6;
+    }
+    .stExpander:hover {
+        border-left-color: #636efa;
+    }
+</style>
+""", unsafe_allow_html=True)
