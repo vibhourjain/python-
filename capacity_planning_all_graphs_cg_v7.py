@@ -168,5 +168,3 @@ try:
             con.close()
 finally:
     pass
-
-
