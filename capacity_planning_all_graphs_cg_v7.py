@@ -25,7 +25,7 @@ try:
             # Get metadata
             metadata_df = con.execute("""
                         SELECT DISTINCT LOWER(target_table) AS table_name, application
-                        FROM capacity_planning.query_metadata
+                        FROM capacity_planning.query_metadata where 1=1 and 2=2
                     """).fetchdf()
 
             for _, row in metadata_df.iterrows():
@@ -68,7 +68,7 @@ try:
                     tick_indices = range(len(x_dates))
 
                 xticks = x_dates.iloc[tick_indices]
-                xtick_labels = [d.strftime('%Y-%m-%d') for d in xticks]
+                xtick_labels = [d.strftime('%Y/%d/%m') for d in xticks]
 
                 ax.set_xticks(xticks)
                 ax.set_xticklabels(xtick_labels, rotation=-90, ha='right')
@@ -83,7 +83,7 @@ try:
                 ax.set_xlabel("Period-Daily")
                 ax.set_ylabel("Volume")
                 ax.legend(
-                    title="Application Type",
+                    title="Type",
                     loc='upper left',
                     bbox_to_anchor=(1.01, 1),
                     borderaxespad=0,
@@ -139,7 +139,7 @@ try:
 
                 # Reposition legend to outside top-right
                 ax.legend(
-                    title="Application Type",
+                    title="Type",
                     loc='upper left',
                     bbox_to_anchor=(1.01, 1),
                     borderaxespad=0,
