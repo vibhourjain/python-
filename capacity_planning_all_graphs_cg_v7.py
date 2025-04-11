@@ -9,7 +9,7 @@ from pptx.util import Inches
 from io import BytesIO
 
 WORK_DIR = r"C:\Users\vibho\ado-0001\python-"
-DUCK_DB_PATH = r"C:\Users\vibho\ado-0001\python-\cap.duckdb"
+DUCKDB_PATH = r"C:\Users\vibho\ado-0001\python-\cap.duckdb"
 METADATA_TABLE = "capacity_planning.query_metadata"
 APPLICATION_TABLE = "capacity_planning.application"
 
@@ -20,12 +20,12 @@ reference_date = st.date_input("Select Reference Date")
 try:
     if st.button("Generate Graphs"):
         try:
-            con = duckdb.connect(DUCK_DB_PATH)
+            con = duckdb.connect(DUCKDB_PATH)
 
             # Get metadata
             metadata_df = con.execute("""
                         SELECT DISTINCT LOWER(target_table) AS table_name, application
-                        FROM capacity_planning.query_metadata where 1=1 and 2=2
+                        FROM capacity_planning.query_metadata where 1=1 and application='BANA-TBAR'
                     """).fetchdf()
 
             for _, row in metadata_df.iterrows():
@@ -94,7 +94,12 @@ try:
 
                 image_stream = BytesIO()
                 fig.savefig(image_stream, format='png', dpi=300, bbox_inches='tight')
-                ppt_template_path = 'T_pp.pptx'
+
+                if app_name.startswith('BANA'):
+                    ppt_template_path = 'T_BANA_CapacityPerformanceReview.pptx'
+                else:
+                    ppt_template_path = 'T_SDI_CapacityPerformanceReview.pptx'
+
                 prs = Presentation(ppt_template_path)
                 slide_daily = prs.slides[2]
                 left = Inches(5)
@@ -161,10 +166,10 @@ try:
                 now = datetime.now()
                 q = str((int(now.strftime("%m")) % 3))
                 y = now.strftime("%Y")
-                pptx_out_filename = "Out_CP.pptx"
+                pptx_out_filename = 'CapacityPerformanceReview_' + app_name + '_Q' + y + q + '.pptx'
                 prs.save(pptx_out_filename)
                 plt.close()
         finally:
             con.close()
 finally:
-    pass
+    print('Complete')
