@@ -1,21 +1,20 @@
 import streamlit as st
 import duckdb
 import pandas as pd
-import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
-from pptx.dml.color import RGBColor
 from io import BytesIO
 from capacity_panning_sql_metric_v3 import insert_metrics_to_duckdb, insert_peaks_to_duckdb
 
 WORK_DIR = r"C:\\Users\\vibho\\ado-0001\\python-"
 DUCKDB_PATH = r"C:\\Users\\vibho\\ado-0001\\python-\\cap.duckdb"
 
-def gen_one_click_capacity_report():
+def get_one_click_capacity_report():
     st.title("Capacity Planning Visualizer")
 
     reference_date = st.date_input("Select Reference Date")
@@ -80,11 +79,7 @@ def gen_one_click_capacity_report():
                 fig.savefig(image_stream, format='png', dpi=300, bbox_inches='tight')
                 plt.close()
 
-                if app_name.startswith('BANA'):
-                    ppt_template_path = 'T_BANA_CapacityPerformanceReview.pptx'
-                else:
-                    ppt_template_path = 'T_SDI_CapacityPerformanceReview.pptx'
-
+                ppt_template_path = 'T_BANA_CapacityPerformanceReview.pptx'
                 prs = Presentation(ppt_template_path)
                 slide_daily = prs.slides[2]
                 slide_daily.shapes.add_picture(image_stream, Inches(5), Inches(4), width=Inches(5))
@@ -133,59 +128,39 @@ def gen_one_click_capacity_report():
                 slide_daily.shapes.add_picture(image_stream, Inches(0.5), Inches(1.5), width=Inches(5))
                 plt.close()
 
-                # Insert new metrics and peaks
+                # Insert metrics
                 insert_metrics_to_duckdb(con, table_name, app_name, reference_date)
-                insert_peaks_to_duckdb(con, table_name, app_name, reference_date)
+                summary_df = con.execute(f"""
+                    SELECT metric_name, metric_value 
+                    FROM capacity_planning.metrics_summary 
+                    WHERE application = '{app_name}' 
+                      AND reference_date = DATE '{reference_date}'
+                """).fetchdf()
 
-                metric_df = con.execute(f"""
-                                    SELECT app_type AS "Type", metric AS "Metric",
-                                           baseline_13m AS "Baseline(13 Month)", current_qtr AS "Current Qtr",
-                                           diff_baseline_pct AS "% Diff Baseline", previous_qtr AS "Previous Qtr",
-                                           diff_qoq_pct AS "% Diff QoQ"
-                                    FROM capacity_planning.metrics_summary
-                                    WHERE application_name = '{app_name}' AND reference_date = '{reference_date}'
-                                    ORDER BY app_type, metric
-                                """).fetchdf()
+                # Adjust headers for Baseline MAX and Peak
+                for idx, row in summary_df.iterrows():
+                    if row['metric_name'] == 'Baseline MAX':
+                        max_month = monthly_df.loc[monthly_df['Volume'].idxmax(), 'month_year']
+                        summary_df.at[idx, 'metric_value'] += f" ({max_month})"
+                    if row['metric_name'] == 'Peak':
+                        peak_value = monthly_df['Volume'].max()
+                        peak_month = monthly_df.loc[monthly_df['Volume'].idxmax(), 'month_year']
+                        summary_df.at[idx, 'metric_value'] = f"{int(peak_value)} ({peak_month})"
 
-                rows, cols = metric_df.shape
-                metric_table = slide_daily.shapes.add_table(rows + 1, cols, Inches(5.5), Inches(0.5), Inches(4),
-                                                            Inches(1.6)).table
-                for col_idx, col_name in enumerate(metric_df.columns):
-                    cell = metric_table.cell(0, col_idx)
-                    cell.text = col_name
-                    cell.fill.solid()
-                    cell.fill.fore_color.rgb = RGBColor(255,255,255)
-                    p = cell.text_frame.paragraphs[0]
-                    p.font.size = Pt(10)
-                    p.font.bold = True
-                    p.font.color.rgb = RGBColor(0, 0, 0)
+                metric_data = [["Metric", "Value"]] + summary_df.values.tolist()
+                rows, cols = len(metric_data), 2
+                table_shape = slide_daily.shapes.add_table(rows, cols, Inches(5.5), Inches(0.5), Inches(4.2),
+                                                           Inches(3.5)).table
 
-                for row_idx, row in metric_df.iterrows():
-                    for col_idx, value in enumerate(row):
-                        cell = metric_table.cell(row_idx + 1, col_idx)
-                        cell.text = str(value)
-                        p = cell.text_frame.paragraphs[0]
-                        p.font.size = Pt(10)
-                        p.font.color.rgb = RGBColor(0, 0, 0)
+                for row_idx, (label, value) in enumerate(metric_data):
+                    table_shape.cell(row_idx, 0).text = label
+                    table_shape.cell(row_idx, 1).text = value
+                    for col_idx in range(2):
+                        cell = table_shape.cell(row_idx, col_idx)
+                        cell.text_frame.paragraphs[0].font.size = Pt(10)
+                        cell.text_frame.paragraphs[0].font.bold = row_idx == 0
+                        cell.text_frame.paragraphs[0].alignment = PP_ALIGN.LEFT
 
-                # Peak summary below metric
-                peak_df = con.execute(f"""
-                                    SELECT PK_ROW FROM capacity_planning.peak_summary
-                                    WHERE application_name = '{app_name}' AND reference_date = '{reference_date}'
-                                """).fetchdf()
-
-                # Peak Table (Below Metric)
-                if not peak_df.empty:
-                    peak_table = slide_daily.shapes.add_table(len(peak_df) + 1, 1, Inches(5.5), Inches(2.3), Inches(4),
-                                                              Inches(1)).table
-                    peak_table.cell(0, 0).text = "Peak Summary"
-                    peak_table.cell(0, 0).text_frame.paragraphs[0].font.bold = True
-                    for i, val in enumerate(peak_df["PK_ROW"], start=1):
-                        peak_table.cell(i, 0).text = val
-                        peak_table.cell(i, 0).text_frame.paragraphs[0].font.size = Pt(9)
-                        peak_table.cell(i, 0).text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
-
-                # Save final output
                 now = datetime.now()
                 q = str((int(now.strftime("%m")) % 3))
                 y = now.strftime("%Y")
