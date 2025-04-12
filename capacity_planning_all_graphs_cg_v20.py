@@ -185,7 +185,6 @@ def gen_one_click_capacity_report():
                         peak_table.cell(i, 0).text_frame.paragraphs[0].font.size = Pt(9)
                         peak_table.cell(i, 0).text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
 
-                # Save final output
                 now = datetime.now()
                 q = str((int(now.strftime("%m")) % 3))
                 y = now.strftime("%Y")
