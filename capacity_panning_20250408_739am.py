@@ -5,7 +5,7 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 from ConnectSybase_Generic import connect_to_database, prepare_sql, execute_query
-from capacity_planning_all_graphs_cg_v31 import gen_one_click_capacity_report
+from capacity_planning_all_graphs_cg_v32 import gen_one_click_capacity_report
 import logging
 
 logger =logging.getLogger()
