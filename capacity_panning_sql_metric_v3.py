@@ -11,7 +11,7 @@ def insert_metrics_to_duckdb(con, table_name, app_name, reference_date):
             ABS(ROUND(AVG(volume) OVER(PARTITION BY application_type), 0)) AS base_data_avg_vol,
             ROW_NUMBER() OVER(PARTITION BY application_type ORDER BY 1) AS base_data_row
         FROM {table_name}
-        WHERE Period = (DATE '{reference_date}' - INTERVAL 13 MONTH + INTERVAL 1 DAY)
+        WHERE Period >= (DATE '{reference_date}' - INTERVAL 13 MONTH + INTERVAL 1 DAY)
         QUALIFY base_data_row = 1
     ),
     current_qtr AS (
