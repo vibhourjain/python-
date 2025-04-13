@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 from ConnectSybase_Generic import connect_to_database, prepare_sql, execute_query
+from capacity_planning_all_graphs_cg_v21 import gen_one_click_capacity_report
 
 # Constants
 DUCKDB_PATH = "sybase_data.duckdb"
@@ -19,33 +20,40 @@ def load_sybase_config():
 
 # Create necessary metadata table and schema
 def initialize_duckdb():
-    with duckdb.connect(DUCKDB_PATH) as conn:
-        conn.execute("CREATE SCHEMA IF NOT EXISTS capacity_planning;")
-        conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {METADATA_TABLE} (
-                id BIGINT,
-                query_name TEXT,
-                sql_text TEXT,
-                target_table TEXT,
-                source_database TEXT,
-                application TEXT,
-                execution_order INTEGER
-            )
-        """)
-        conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {APPLICATION_TABLE} (
-                app_name TEXT,
-                app_type TEXT,
-                bv_date DATE,
-                count_rec INTEGER,
-                start_date DATE
-            )
-        """)
+    duckdb_databasename = st.text_input("Enter Duck DB Database Name","sybase_data.duckdb")
+    schema_name = st.text_input("Enter Schema Name","capacity_planning")
+    query_metadata = st.text_input("Enter Duck DB Database Name","capacity_planning.query_metadata")
+    application_table = st.text_input("Enter Duck DB Database Name","capacity_planning.application")
+    # metric = st.text_input("Enter Duck DB Database Name")
+
+    if st.button("Initialize Duckdb"):
+        with duckdb.connect(DUCKDB_PATH) as conn:
+            conn.execute("CREATE SCHEMA IF NOT EXISTS capacity_planning;")
+            conn.execute(f"""
+                CREATE TABLE IF NOT EXISTS {METADATA_TABLE} (
+                    id BIGINT,
+                    query_name TEXT,
+                    sql_text TEXT,
+                    target_table TEXT,
+                    source_database TEXT,
+                    application TEXT,
+                    execution_order INTEGER
+                )
+            """)
+            conn.execute(f"""
+                CREATE TABLE IF NOT EXISTS {APPLICATION_TABLE} (
+                    app_name TEXT,
+                    app_type TEXT,
+                    bv_date DATE,
+                    count_rec INTEGER,
+                    start_date DATE
+                )
+            """)
 
 # UI to insert new metadata records and upload .sql file
 def metadata_manager():
     st.header("Metadata Table Setup")
-    initialize_duckdb()
+    # initialize_duckdb()
 
     st.subheader("Insert New SQL Metadata")
     query_name = st.text_input("Query Name")
@@ -74,7 +82,7 @@ def metadata_manager():
 
 def data_loader():
     st.header("Run Monthly SQL Jobs")
-    initialize_duckdb()
+    # initialize_duckdb()
 
     end_date = st.date_input("End Date", value=datetime.today())
 
@@ -111,8 +119,8 @@ def data_loader():
                     duckdb_conn.execute(f"INSERT INTO {target_table} SELECT * FROM df")
 
                     csv_file = f"output_{row['query_name']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                    df.to_csv(csv_file, index=False)
-                    st.success(f"Loaded {len(df)} rows into {target_table}. Exported to {csv_file}")
+                    # df.to_csv(csv_file, index=False)
+                    # st.success(f"Loaded {len(df)} rows into {target_table}. Exported to {csv_file}")
 
                     duckdb_conn.execute(f"""
                         INSERT INTO {APPLICATION_TABLE} (app_name, app_type, bv_date, count_rec, start_date)
@@ -126,7 +134,7 @@ def data_loader():
 
 def metadata_editor():
     st.header("Edit Metadata")
-    initialize_duckdb()
+    # initialize_duckdb()
 
     # id,
     # query_name,
@@ -163,7 +171,7 @@ def metadata_editor():
 # Free SQL Runner Page
 def duckdb_sql_runner():
     st.header("Run Custom SQL on DuckDB")
-    initialize_duckdb()
+    # initialize_duckdb()
 
     sql_input = st.text_area("Enter your DuckDB SQL:")
 
@@ -173,14 +181,14 @@ def duckdb_sql_runner():
                 df = conn.execute(sql_input).fetchdf()
                 st.dataframe(df)
                 csv_name = f"result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                df.to_csv(csv_name, index=False)
-                st.success(f"Result exported to {csv_name}")
+                # df.to_csv(csv_name, index=False)
+                # st.success(f"Result exported to {csv_name}")
         except Exception as e:
             st.error(f"SQL execution error: {e}")
 
 # Streamlit navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Metadata Setup", "Metadata Editor","Run Queries", "DuckDB SQL Runner"])
+page = st.sidebar.radio("Go to", ["Generate All Graphs","Metadata Setup", "Metadata Editor","Run Queries", "DuckDB SQL Runner"])
 
 if page == "Metadata Setup":
     metadata_manager()
@@ -190,3 +198,5 @@ elif page == "DuckDB SQL Runner":
     duckdb_sql_runner()
 elif page == "Metadata Editor":
     metadata_editor()
+elif page == "Generate All Graphs":
+    gen_one_click_capacity_report()
