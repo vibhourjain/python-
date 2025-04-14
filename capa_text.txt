@@ -1,0 +1,44 @@
+🔄 Functionality Overview: Capacity Planning System
+Metadata Management
+
+SQL templates and application-specific configuration are centrally stored in a DuckDB table.
+
+Enables dynamic query execution without changing application code.
+
+Raw Data Extraction from Sybase
+
+A Python program reads metadata, connects to Sybase instances, and fetches raw volume or usage data using parameterized SQL queries.
+
+Fetched data is dynamically loaded and appended to respective DuckDB tables.
+
+Data Persistence and Tracking
+
+All report data is stored in DuckDB along with key metadata (e.g., start_date, record count).
+
+Application execution history is maintained for audit and rerun capabilities.
+
+Visualization and Reporting
+
+The same Python program uses Streamlit to generate interactive graphs (line/bar) for daily and monthly trends.
+
+Outputs are exported into a formatted PowerPoint file including visual charts, metrics, and peak summaries.
+
+✅ Benefits
+📌 Centralized Metadata Control
+Easy to manage and update SQL logic without altering the codebase.
+
+🔁 Reusability Across Applications
+Supports multiple applications and environments through metadata-driven design.
+
+⚙️ Automated Workflow
+From SQL execution to report generation, the end-to-end process is fully automated with minimal user input.
+
+📊 Enhanced Data Visualization
+Clear, structured insights through dynamic line/bar charts and metrics tailored per application.
+
+📂 Historical Data Retention
+DuckDB persists past data enabling trends analysis and comparisons.
+
+📤 Professional-Grade Reporting
+Automatically creates clean PowerPoint slides for sharing with stakeholders, saving manual effort.
+
