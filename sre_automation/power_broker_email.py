@@ -85,21 +85,6 @@ def page_power_broker_email():
 
     # Dropdown for Impacted Applications
     application_name = ["Storage","Kitchen"]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     application_name.sort()
     application = st.selectbox("Application:", application_name)
 
