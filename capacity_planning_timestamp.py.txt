@@ -1,0 +1,107 @@
+from pptx.enum.shapes import MSO_SHAPE
+
+apps_with_timestamp = ["APP_XYZ", "BANA-XYZ"]  # Replace with actual timestamp-based app names
+
+...
+
+for _, row in metadata_df.iterrows():
+    table_name = row["table_name"]
+    app_name = row["application"]
+
+    # Determine Period column type for SQL and plotting
+    if app_name in apps_with_timestamp:
+        period_column = "Period"
+    else:
+        period_column = "CAST(Period AS DATE)"
+
+    query = f"""
+        SELECT *, strftime({period_column}, '%Y-%m') AS month_year
+        FROM {table_name}
+        WHERE {period_column} BETWEEN DATE '{reference_date}' - INTERVAL 13 MONTHS AND DATE '{reference_date}'
+    """
+
+    try:
+        df = con.execute(query).fetchdf()
+    except Exception as e:
+        st.error(f"Error fetching data from {table_name}: {e}")
+        continue
+
+    if df.empty:
+        st.warning(f"No data for {app_name} in past 13 months.")
+        continue
+
+    df["Period"] = pd.to_datetime(df["Period"])
+
+    if app_name in apps_with_timestamp:
+        df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d %H:%M:%S')
+    else:
+        df["Period"] = df["Period"].dt.normalize()
+        df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d')
+
+    df = df.sort_values("Period").reset_index(drop=True)
+    df["month_year"] = df["Period"].dt.strftime("%Y-%m")
+
+    # Continue as-is with graph generation code...
+	
+	
+	
+	
+	
+	
+	
+Step-by-step Changes
+✅ 1. Add a list of timestamp-based applications
+At the top of your file or just before the loop:
+
+python
+Copy
+Edit
+apps_with_timestamp = ["APP_XYZ", "BANA-XYZ"]  # Replace with actual application names
+✅ 2. Inside your loop, check if this app uses timestamps
+Replace this block:
+
+python
+Copy
+Edit
+df["Period"] = pd.to_datetime(df["Period"])
+df = df.sort_values("Period").reset_index(drop=True)
+df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d')
+df["month_year"] = df["Period"].dt.strftime("%Y-%m")
+With this version:
+
+python
+Copy
+Edit
+df["Period"] = pd.to_datetime(df["Period"])
+
+# Decide formatting based on app type
+if app_name in apps_with_timestamp:
+    df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d %H:%M:%S')
+else:
+    df["Period"] = df["Period"].dt.normalize()
+    df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d')
+
+df = df.sort_values("Period").reset_index(drop=True)
+df["month_year"] = df["Period"].dt.strftime("%Y-%m")
+This ensures:
+
+Timestamp is preserved for those specific apps
+
+Others are treated as date-only
+
+🎯 Bonus: Also modify the SQL if needed
+If you run into DuckDB errors due to time component in Period, you can conditionally use CAST(Period AS DATE) in your SQL like:
+
+python
+Copy
+Edit
+if app_name in apps_with_timestamp:
+    period_column = "Period"
+else:
+    period_column = "CAST(Period AS DATE)"
+
+query = f"""
+    SELECT *, strftime({period_column}, '%Y-%m') AS month_year
+    FROM {table_name}
+    WHERE {period_column} BETWEEN DATE '{reference_date}' - INTERVAL 13 MONTHS AND DATE '{reference_date}'
+"""
