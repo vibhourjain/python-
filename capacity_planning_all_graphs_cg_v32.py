@@ -19,11 +19,6 @@ from capacity_planning_sql_metric_v3 import insert_metrics_to_duckdb, insert_pea
 WORK_DIR = r"C:\\Users\\vibho\\ado-0001\\python-"
 DUCKDB_PATH = r"C:\\Users\\vibho\\ado-0001\\python-\\sybase_data.duckdb"
 
-# DUCKDB_PATH = "sybase_data.duckdb"
-# SYBASE_CONFIG_PATH = "sybase_instances.json"
-METADATA_TABLE = "capacity_planning.query_metadata"
-APPLICATION_TABLE = "capacity_planning.application"
-
 def gen_one_click_capacity_report():
     st.title("Capacity Planning Visualizer")
 
@@ -35,7 +30,9 @@ def gen_one_click_capacity_report():
             metadata_df = con.execute("""
                 SELECT DISTINCT LOWER(target_table) AS table_name, application
                 FROM capacity_planning.query_metadata 
-                WHERE 1=1 AND application = 'BANA-TBAR'
+                WHERE 1=1
+                AND IS_ACTIVE = 'Y'
+                AND application = 'BANA-TBAR'
             """).fetchdf()
 
             for _, row in metadata_df.iterrows():
@@ -46,7 +43,7 @@ def gen_one_click_capacity_report():
                     SELECT *, strftime(Period, '%Y-%m') AS month_year
                     FROM {table_name}
                     WHERE Period >= (DATE '{reference_date}' - INTERVAL 13 MONTHS + INTERVAL 1 DAY)
-                     AND Period < (DATE '{reference_date}' + INTERVAL 1 DAY)
+                    AND Period < (DATE '{reference_date}' + INTERVAL 1 DAY)
                 """
                 try:
                     df = con.execute(query).fetchdf()
