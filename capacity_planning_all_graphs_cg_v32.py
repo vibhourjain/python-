@@ -46,7 +46,7 @@ def gen_one_click_capacity_report():
                     SELECT *, strftime(Period, '%Y-%m') AS month_year
                     FROM {table_name}
                     WHERE Period >= (DATE '{reference_date}' - INTERVAL 13 MONTHS + INTERVAL 1 DAY)
-                     Period < (DATE '{reference_date}' + INTERVAL 1 DAY)
+                     AND Period < (DATE '{reference_date}' + INTERVAL 1 DAY)
                 """
                 try:
                     df = con.execute(query).fetchdf()
