@@ -2,13 +2,13 @@ import streamlit as st
 import duckdb
 from datetime import datetime, timedelta
 from ConnectSybase_Generic import connect_to_database, prepare_sql, execute_query_1
-from ConnectSybase_import import execute_query
+from ConnectSybase import execute_query
 import logging
-from capacity_planning_visual_v1 import generate_cap_plan_visual
+from capacity_planning_visual_v1 import capacity_planning_visual_v1
 from capacity_planning_all_graphs_cg_v32 import gen_one_click_capacity_report
-from capacity_planning_pre_reqisite import setup_duckdb_objects
+from Capacity_planning_pre_requiste import setup_duckdb_objects
 
-logger =logging.getLogger()
+logger = logging.getLogger(__name__)
 
 DUCKDB_PATH = "sybase_data.duckdb"
 METADATA_TABLE = "capacity_planning.query_metadata"
@@ -28,8 +28,8 @@ def metadata_manager():
     source_database = st.text_input("Sybase Instance (e.g., SD1)")
     application = st.text_input("Application Name")
     app_capacity = st.text_input("Enter Application Capacity")
-    metric_sql = st.text_input("Enter Metric SQL")
-    peak_sql = st.text_input("Enter Peak SQL")
+    metric_sql = st.text_area("Enter Metric SQL")
+    peak_sql = st.text_area("Enter Peak SQL")
     execution_order = st.number_input("Execution Order", min_value=1, value=1)
 
     if st.button("Insert Metadata") and sql_text:
@@ -38,7 +38,7 @@ def metadata_manager():
             conn.execute(f"""
                 INSERT INTO {METADATA_TABLE} (id, query_name, sql_text, frequency, target_table, source_database, application, execution_order, metric_sql, peak_sql, app_capacity, is_active)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'Y')
-            """, (max_id, query_name, sql_text, target_table, source_database, application, execution_order,metric_sql, peak_sql, app_capacity))
+            """, (max_id, query_name, sql_text, report_frequency, target_table, source_database, application, execution_order,metric_sql, peak_sql, app_capacity))
             st.success("Metadata inserted!")
 
     st.subheader("Existing Metadata")
@@ -65,17 +65,16 @@ def metadata_editor():
         source_database = st.text_input("Sybase Instance", row[5])
         application = st.text_input("Application Name", row[6])
         execution_order = st.text_input("Execution Order", row[7])
-        metric_sql = st.text_input("Metric SQL", row[8])
-        peak_sql = st.text_input("Peak SQL", row[9])
+        metric_sql = st.text_area("Metric SQL", row[8])
+        peak_sql = st.text_area("Peak SQL", row[9])
         app_capacity = st.text_input("Application Capacity", row[10])
         is_active = st.text_input("Is Active SQL", row[11])
-
 
         if st.button("Update Metadata"):
             with duckdb.connect(DUCKDB_PATH) as conn:
                 conn.execute(f"""
                     UPDATE {METADATA_TABLE}
-                    SET query_name = ?, frequency =?, sql_text = ?, target_table = ?, source_database = ?, application = ?, execution_order = ?,
+                    SET query_name = ?, frequency = ?, sql_text = ?, target_table = ?, source_database = ?, application = ?, execution_order = ?,
                     metric_sql = ?, peak_sql = ?, app_capacity=?, is_active = ?
                     WHERE id = ?
                 """, (query_name, frequency, sql_text, target_table,
@@ -119,7 +118,7 @@ def data_loader():
                         start_date.strftime('%Y-%m-%d'),
                         end_date.strftime('%Y-%m-%d')
                     )
-                    datetime_columns = df.select_dtypes(include={'datetime64'}).columns
+                    datetime_columns = df.select_dtypes(include=['datetime64']).columns
                     for column in datetime_columns:
                         df[column] = df[column].dt.date
 
@@ -167,6 +166,6 @@ elif page == "Run Queries":
 elif page == "DuckDB SQL Runner":
     duckdb_sql_runner()
 elif page == "Generate Visuals":
-    capacity_planning_visual_v1.generate_cap_plan_visual()
-elif page == "Generate All Graphs":
+    generate_cap_plan_visual()
+elif page == "Generate Capacity Reports":
     gen_one_click_capacity_report()
