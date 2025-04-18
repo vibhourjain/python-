@@ -4,17 +4,13 @@ import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from datetime import datetime, timedelta
+import seaborn as sns
 import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()]
-)
+from check_user1 import selected_app
+
 logger = logging.getLogger(__name__)
 
-# Database Path
 DB_PATH = r"C:\Users\vibho\ado-0001\python-\capacity_planning_v3.duckdb"
 
 
@@ -42,7 +38,7 @@ def get_duckdb_schema(table_name):
 def fetch_last_13_months_data(table_name, date_column, reference_date):
     """Retrieve data from DuckDB for the last 13 months"""
     conn = duckdb.connect(DB_PATH)
-    start_date = reference_date - timedelta(days=13 * 30)  # Approx 13 months
+    start_date = reference_date - timedelta(days=13 * 30)
     try:
         query = f"""
             SELECT * FROM {table_name}
@@ -50,6 +46,7 @@ def fetch_last_13_months_data(table_name, date_column, reference_date):
             ORDER BY {date_column} ASC
         """
         df = conn.execute(query).fetchdf()
+        date_columns = [col for col in df.columns if df[col].dtype in('time' or 'timestamp_ns') or 'date' in str(df[col].dtype).lower()]
         logger.info(f"Fetched {len(df)} rows from {table_name}")
         return df
     except Exception as e:
@@ -60,19 +57,20 @@ def fetch_last_13_months_data(table_name, date_column, reference_date):
         conn.close()
 
 
-def main():
+def generate_cap_plan_visual():
     st.title("Interactive Data Visualization")
 
     conn = duckdb.connect(DB_PATH)
-    apps = conn.execute("SELECT application_name FROM metadata").fetchdf()["application_name"].tolist()
+    apps = conn.execute("SELECT distinct application_name FROM capacity_planning.query_mmetadata where is_active ='Y' order by application ").fetchdf()["application"].tolist()
     conn.close()
+    logger.info(f"now fetching apps name: {apps}")
 
     selected_app = st.selectbox("Select Application", apps)
     if selected_app:
         conn = duckdb.connect(DB_PATH)
         try:
             table_name = \
-            conn.execute(f"SELECT table_name FROM metadata WHERE application_name = '{selected_app}'").fetchone()[0]
+            conn.execute(f"SELECT MAX(target_table) target_table FROM capacity_planning.query_mmetadata WHERE 1=1 and is_active = 'Y' AND application_name = '{selected_app}'").fetchone()[0]
         except Exception as e:
             logger.error(f"Error fetching table name: {str(e)}")
             st.error(f"Error fetching table name: {str(e)}")
@@ -81,7 +79,7 @@ def main():
             conn.close()
 
         schema = get_duckdb_schema(table_name)
-        date_columns = [col for col, dtype in schema.items() if "date" in dtype.lower()]
+        date_columns = [col for col, dtype in schema.items() if dtype.lower() in ["timestamp_ns","date","time"]]
 
         if not date_columns:
             st.error("No date columns found in the table.")
@@ -90,10 +88,12 @@ def main():
         selected_date_column = st.selectbox("Select Date Column", date_columns)
         reference_date = st.date_input("Select Reference Date", datetime.today())
 
-        if st.button("Fetch Data") or "data" in st.session_state:
+        data_key = f"data_{selected_app}"
+        if st.button("Fetch Data"):
             if "data" not in st.session_state:
-                st.session_state.data = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
-            df = st.session_state.data
+                st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
+            if data_key in st.session_state:
+                df = st.session_state[data_key]
 
             if df.empty:
                 st.warning("No data found for the selected filters.")
@@ -107,33 +107,26 @@ def main():
                 if selected_vals:
                     df = df[df[col].isin(selected_vals)]
 
-            # Date Aggregation (Optional)
-            aggregation_options = {"None": None, "Day": "D", "Month": "M", "Quarter": "Q", "Year": "Y"}
+            aggregation_options = {"None": None, "Day": "D", "Month": "ME", "Quarter": "Q", "Year": "Y"}
             selected_aggregation = st.selectbox("Aggregate By (Optional)", list(aggregation_options.keys()))
 
             if selected_aggregation != "None":
                 df[selected_date_column] = pd.to_datetime(df[selected_date_column])
                 df = df.resample(aggregation_options[selected_aggregation], on=selected_date_column).sum().reset_index()
 
-            # Graph Configuration
             graph_types = {"Line Chart": "line", "Bar Chart": "bar", "Scatter Plot": "scatter"}
             selected_graph_type = st.selectbox("Select Graph Type", list(graph_types.keys()))
             x_column = st.selectbox("Select X-Axis Column", df.columns, index=df.columns.get_loc(selected_date_column))
             y_columns = st.multiselect("Select Y-Axis Column(s)", df.columns, default=[df.columns[1]])
 
-            # Generate Plotly Chart
-            fig = px.__getattribute__(graph_types[selected_graph_type])(df, x=x_column, y=y_columns,
+            color_column=st.selectbox("Select Graph Hues", df.columns)
+            fig = px.__getattribute__(graph_types[selected_graph_type])(df, x=x_column, y=y_columns, color=color_column,
                                                                         title=f"{selected_app} - {selected_graph_type}")
+            tick_values = [df[x_column].min()] + df[x_column].iloc[::6].to_list()[1:]
+            fig.update_layout(
+                xaxis = dict(
+                    tick()=df[x_column].min(),
+            tickvals=tick_values
+                )
+            )
             st.plotly_chart(fig)
-
-            # Summary Statistics
-            st.subheader("Summary Statistics")
-            st.write(df.describe())
-
-            # Export Graph as Image
-            img_bytes = pio.to_image(fig, format="png")
-            st.download_button("Download Graph", data=img_bytes, file_name="graph.png", mime="image/png")
-
-
-if __name__ == "__main__":
-    main()
