@@ -7,8 +7,6 @@ from datetime import datetime, timedelta
 import seaborn as sns
 import logging
 
-from check_user1 import selected_app
-
 logger = logging.getLogger(__name__)
 
 DB_PATH = r"C:\Users\vibho\ado-0001\python-\capacity_planning_v3.duckdb"
