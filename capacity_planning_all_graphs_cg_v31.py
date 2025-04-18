@@ -14,7 +14,7 @@ from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from io import BytesIO
-from capacity_panning_sql_metric_v3 import insert_metrics_to_duckdb, insert_peaks_to_duckdb
+from capacity_planning_sql_metric_v3 import insert_metrics_to_duckdb, insert_peaks_to_duckdb
 
 WORK_DIR = r"C:\\Users\\vibho\\ado-0001\\python-"
 DUCKDB_PATH = r"C:\\Users\\vibho\\ado-0001\\python-\\sybase_data.duckdb"

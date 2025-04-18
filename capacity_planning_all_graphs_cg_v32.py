@@ -14,7 +14,7 @@ from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from io import BytesIO
-from capacity_panning_sql_metric_v3 import insert_metrics_to_duckdb, insert_peaks_to_duckdb
+from capacity_planning_sql_metric_v3 import insert_metrics_to_duckdb, insert_peaks_to_duckdb
 
 WORK_DIR = r"C:\\Users\\vibho\\ado-0001\\python-"
 DUCKDB_PATH = r"C:\\Users\\vibho\\ado-0001\\python-\\sybase_data.duckdb"
@@ -45,7 +45,8 @@ def gen_one_click_capacity_report():
                 query = f"""
                     SELECT *, strftime(Period, '%Y-%m') AS month_year
                     FROM {table_name}
-                    WHERE Period BETWEEN DATE '{reference_date}' - INTERVAL 13 MONTHS AND DATE '{reference_date}'
+                    WHERE Period >= (DATE '{reference_date}' - INTERVAL 13 MONTHS + INTERVAL 1 DAY)
+                     Period < (DATE '{reference_date}' + INTERVAL 1 DAY)
                 """
                 try:
                     df = con.execute(query).fetchdf()
@@ -62,15 +63,16 @@ def gen_one_click_capacity_report():
                 df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d')
                 df["month_year"] = df["Period"].dt.strftime("%Y-%m")
 
+                order_hue = sorted(df['Application_Type'].unique())
                 fig, ax = plt.subplots(figsize=(14, 4))
-                sns.lineplot(data=df, x=df.index, y="Volume", hue="Application_Type", ax=ax, palette='muted')
-                tick_indices = np.linspace(0, len(df) - 1, min(15, len(df)), dtype=int)
+                sns.lineplot(data=df, x=df.index, y="Volume", hue="Application_Type", ax=ax, palette='muted', hue_order =order_hue)
+                tick_indices = np.linspace(0, len(df) - 1, min(40, len(df)), dtype=int)
                 xtick_labels = df.loc[tick_indices, "Period_Str"]
 
                 ax.set_xticks(tick_indices)
                 ax.set_xticklabels(xtick_labels, rotation=-90, ha='right')
                 ax.spines[['top', 'right', 'left', 'bottom']].set_visible(False)
-                ax.grid(True, axis='y', linestyle='--', linewidth=0.5, color='gray', alpha=0.3)
+                ax.grid(True, axis='y', linestyle='--', linewidth=0.5, color='gray', alpha=0.5)
                 ax.set_axisbelow(True)
                 ax.tick_params(axis='y', left=False)
                 ax.tick_params(axis='x', bottom=False)
@@ -98,7 +100,6 @@ def gen_one_click_capacity_report():
 
                 title_shape = slide_daily.shapes.add_textbox(Inches(0.5), Inches(0.2), Inches(8), Inches(0.5))
                 tf = title_shape.text_frame
-                tf.text = f"Capacity Planning Report: {app_name}"
                 tf.paragraphs[0].font.size = Pt(18)
                 tf.paragraphs[0].font.bold = True
                 tf.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
@@ -118,7 +119,8 @@ def gen_one_click_capacity_report():
                     hue="Application_Type",
                     ax=ax,
                     width=bar_width,
-                    palette='colorblind'
+                    palette='colorblind',
+                    hue_order =order_hue
                 )
 
                 max_volume = monthly_df["Volume"].max()
@@ -128,7 +130,7 @@ def gen_one_click_capacity_report():
                     ax.bar_label(container, fmt="%.0f", label_type='edge', fontsize=8)
 
                 ax.spines[['top', 'right', 'left', 'bottom']].set_visible(False)
-                ax.grid(True, axis='y', linestyle='--', linewidth=0.5, color='gray', alpha=0.3)
+                ax.grid(True, axis='y', linestyle='--', linewidth=0.5, color='gray', alpha=0.5)
                 ax.set_axisbelow(True)
                 ax.tick_params(axis='y', left=False)
                 ax.tick_params(axis='x', bottom=False)
@@ -226,9 +228,15 @@ def gen_one_click_capacity_report():
                         paragraph.font.color.rgb = RGBColor(0, 0, 0)
 
                 now = datetime.now()
-                q = str((int(now.strftime("%m")) % 3))
+                qtr_month = int(now.strftime("%m"))
+                if qtr_month % 3 ==0:
+                    q = str((int(now.strftime("%m")) % 3))
+                else:
+                    q = (qtr_month // 3) + 1
+
+                T=""
                 y = now.strftime("%Y")
-                pptx_out_filename = 'CapacityPerformanceReview_' + app_name + '_Q' + y + q + '.pptx'
+                pptx_out_filename = T+ 'CapacityPerformanceReview_' + app_name + '_' + y + 'Q' + str(q) + '.pptx'
                 prs.save(pptx_out_filename)
 
         finally:
