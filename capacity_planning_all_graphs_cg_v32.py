@@ -62,10 +62,9 @@ def gen_one_click_capacity_report():
                 df = df.sort_values("Period").reset_index(drop=True)
                 df["Period_Str"] = df["Period"].dt.strftime('%Y/%m/%d')
                 df["month_year"] = df["Period"].dt.strftime("%Y-%m")
-
                 order_hue = sorted(df['Application_Type'].unique())
                 fig, ax = plt.subplots(figsize=(14, 4))
-                sns.lineplot(data=df, x=df.index, y="Volume", hue="Application_Type", ax=ax, palette='muted', hue_order =order_hue)
+                sns.lineplot(data=df, x=df.index, y="Volume", hue="Application_Type", ax=ax, palette='muted', hue_order = order_hue)
                 tick_indices = np.linspace(0, len(df) - 1, min(40, len(df)), dtype=int)
                 xtick_labels = df.loc[tick_indices, "Period_Str"]
 
@@ -120,7 +119,7 @@ def gen_one_click_capacity_report():
                     ax=ax,
                     width=bar_width,
                     palette='colorblind',
-                    hue_order =order_hue
+                    hue_order = order_hue
                 )
 
                 max_volume = monthly_df["Volume"].max()
@@ -229,8 +228,8 @@ def gen_one_click_capacity_report():
 
                 now = datetime.now()
                 qtr_month = int(now.strftime("%m"))
-                if qtr_month % 3 ==0:
-                    q = str((int(now.strftime("%m")) % 3))
+                if qtr_month % 3 == 0:
+                    q = (qtr_month // 3)
                 else:
                     q = (qtr_month // 3) + 1
 
