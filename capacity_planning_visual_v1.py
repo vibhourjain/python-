@@ -61,7 +61,7 @@ def generate_cap_plan_visual():
     st.title("Interactive Data Visualization")
 
     conn = duckdb.connect(DB_PATH)
-    apps = conn.execute("SELECT distinct application_name FROM capacity_planning.query_mmetadata where is_active ='Y' order by application ").fetchdf()["application"].tolist()
+    apps = conn.execute("SELECT distinct application FROM capacity_planning.query_metadata where is_active ='Y' order by application ").fetchdf()["application"].tolist()
     conn.close()
     logger.info(f"now fetching apps name: {apps}")
 
@@ -70,7 +70,7 @@ def generate_cap_plan_visual():
         conn = duckdb.connect(DB_PATH)
         try:
             table_name = \
-            conn.execute(f"SELECT MAX(target_table) target_table FROM capacity_planning.query_mmetadata WHERE 1=1 and is_active = 'Y' AND application_name = '{selected_app}'").fetchone()[0]
+            conn.execute(f"SELECT MAX(target_table) target_table FROM capacity_planning.query_metadata WHERE 1=1 and is_active = 'Y' AND application = '{selected_app}'").fetchone()[0]
         except Exception as e:
             logger.error(f"Error fetching table name: {str(e)}")
             st.error(f"Error fetching table name: {str(e)}")
@@ -87,19 +87,17 @@ def generate_cap_plan_visual():
 
         selected_date_column = st.selectbox("Select Date Column", date_columns)
         reference_date = st.date_input("Select Reference Date", datetime.today())
-
         data_key = f"data_{selected_app}"
         if st.button("Fetch Data"):
-            if "data" not in st.session_state:
-                st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
-            if data_key in st.session_state:
-                df = st.session_state[data_key]
+            st.session_state[data_key] = fetch_last_13_months_data(table_name, selected_date_column, reference_date)
+
+        if data_key in st.session_state:
+            df = st.session_state[data_key]
 
             if df.empty:
                 st.warning("No data found for the selected filters.")
                 return
 
-            # Filters
             filter_columns = [col for col in df.columns if col not in date_columns]
             for col in filter_columns:
                 unique_vals = df[col].unique()
@@ -118,15 +116,15 @@ def generate_cap_plan_visual():
             selected_graph_type = st.selectbox("Select Graph Type", list(graph_types.keys()))
             x_column = st.selectbox("Select X-Axis Column", df.columns, index=df.columns.get_loc(selected_date_column))
             y_columns = st.multiselect("Select Y-Axis Column(s)", df.columns, default=[df.columns[1]])
+            color_column=st.selectbox("Select Graphs Hues", df.columns)
 
-            color_column=st.selectbox("Select Graph Hues", df.columns)
             fig = px.__getattribute__(graph_types[selected_graph_type])(df, x=x_column, y=y_columns, color=color_column,
                                                                         title=f"{selected_app} - {selected_graph_type}")
             tick_values = [df[x_column].min()] + df[x_column].iloc[::6].to_list()[1:]
             fig.update_layout(
                 xaxis = dict(
-                    tick()=df[x_column].min(),
-            tickvals=tick_values
+                    tick0=df[x_column].min(),
+                    tickvals=tick_values
                 )
             )
             st.plotly_chart(fig)
