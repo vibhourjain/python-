@@ -3,7 +3,7 @@
 # */
 
 import streamlit as st
-from utils_email import validate_email_domain, send_email, send_mailto_email
+from utils_email import validate_email_domain, send_email, send_mailto_email, get_formatted_input
 import logging
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ def page_power_broker_email():
     application_name.sort()
     application = st.selectbox("Application:", application_name)
 
-    task_description = st.text_area("Task Description:","Need to perform the recovery steps")
+    task_description = get_formatted_input("Task Description:","Need to perform the recovery steps")
     service_account = st.text_input("Service Account(s):")
     users = st.text_input('Enter Users (nbk-FirstName) comma "," separated:', 'zkajghh-Vibhour')
     power_broker_grantee = users[:7]
