@@ -6,9 +6,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_formatted_text(label:str, value:str=""):
-    text = st.text_area(label, value=value)
-    return text.replace('\n','<br>') if text else ""
+def get_formatted_text(label: str, value: str = "", key=None):
+    text = st.text_area(label, value=value, key=key)
+    return text.replace('\n', '<br>') if text else ""
+
 
 def validate_email_domain(email_list, list_type, domain="bofa.com"):
     if list_type == 'to' and not email_list:

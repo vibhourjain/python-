@@ -67,7 +67,7 @@ def fn_latent_approval():
     <body>
 
     <p style="color:black; text-align:left; font-weight:normal; white-space:pre-line;">
-    Hi Vibhour,
+    Hi {greeting_to},
     </p>
 
     <p style="color:black; text-align:left; font-weight:normal; white-space:pre-line;">
@@ -102,20 +102,22 @@ def fn_latent_approval():
     </html>
     """
 
-    request_input_by = st.text_input("Enter Your Name:", key="request_input_by")
-    impacted_applications = st.text_input("Impacted Applications:", key="impacted_applications")
-    issue_summary = get_formatted_text("Issue Summary:", key="issue_summary")
-    maps_lead_approval = st.text_input("MAPS Lead Approval:", "Shreyas Ganu", key="maps_lead_approval")
-    cio_dev_lead_review = st.text_input("Reviewed by CIO Dev Lead:", key="cio_dev_lead_review")
-    known_issue_reference = st.text_input("Known Issue references (Jira/TechDebt/PKE): Leave Blank if not Applicable", key="known_issue_reference")
+    request_input_by = st.text_input("Enter Your Name:", Key="request_input_by")
+    impacted_applications = st.text_input("Impacted Applications:", Key="impacted_applications")
+    issue_summary = get_formatted_text("Issue Summary:", Key="issue_summary")
+    maps_lead_approval = st.text_input("MAPS Lead Approval:", "Vibhour Jain")
+    greeting_to=maps_lead_approval.split()[0]
+    
+    cio_dev_lead_review = st.text_input("Reviewed by CIO Dev Lead:", Key="cio_dev_lead_review")
+    known_issue_reference = st.text_input("Known Issue references (Jira/TechDebt/PKE): Leave Blank if not Applicable", Key="known_issue_reference")
 
-    incident_number = st.text_input("Incident Number:", key="incident_number").upper()
-    incident_priority = st.text_input("Incident Priority:", "P3-L", key="incident_priority")
-    incident_urgency = st.text_input("Incident Urgency:", "Medium", key="incident_urgency")
-    reason_for_latent_fix = get_formatted_text("Reason for Latent Fix:", key="reason_for_latent_fix")
-    impacted_locations = st.text_input("Impacted Location(s):", "Japan", key="impacted_locations")
-    business_impact = get_formatted_text("Business Impact (Risk of Not Implementing):", key="business_impact")
-    remediation_steps = get_formatted_text("Steps Needed for Remediation:", key="remediation_steps")
+    incident_number = st.text_input("Incident Number:", Key="incident_number").upper()
+    incident_priority = st.text_input("Incident Priority:", "P3-L")
+    incident_urgency = st.text_input("Incident Urgency:", "Medium")
+    reason_for_latent_fix = get_formatted_text("Reason for Latent Fix:", Key="reason_for_latent_fix")
+    impacted_locations = st.text_input("Impacted Location(s):", "Japan", Key="impacted_locations")
+    business_impact = get_formatted_text("Business Impact (Risk of Not Implementing):", Key="business_impact")
+    remediation_steps = get_formatted_text("Steps Needed for Remediation:", Key="remediation_steps")
 
     field_values = {
         "Impacted Application": impacted_applications,
@@ -138,36 +140,40 @@ def fn_latent_approval():
 
     st.write("***Enter Recipients & Verify the E-Mail Details before send***")
     with st.expander("Email Details"):
-        task_description = st.text_area("Task Description:", "Need to perform the recovery steps", key="task_description")
-        to_list = st.text_area("***Must Enter To*** (comma-separated):", "shreyas.ganu@bofa.com", key="to_list").split(',')
-        cc_list = st.text_area("***Must Enter CC*** (comma-separated):", key="cc_list").split(',')
+        to_list = st.text_area("***Must Enter To*** (comma-separated):", "vibhourjain@gmail.com").split(',')
+        cc_list = st.text_area("***Must Enter CC*** (comma-separated):", Key="cc_list").split(',')
         st.write("Preview of EMail Body")
         st.markdown(email_body, unsafe_allow_html=True)
 
     if st.button("Send Email"):
+        to_list=list(to_list)
+        cc_list = list(cc_list)
         if validate_email_domain(to_list, list_type='to'):
-            subject = f"{incident_number} - Latent Approval Request-TechDebt: {known_issue_reference}" if known_issue_reference else f"{incident_number} - Latent Approval Request"
-            email_final_body = html_template.format(
+            subject = f"{incident_number} - Latent Approval Request-TechDebt: {known_issue_reference}" \
+                if known_issue_reference \
+                else f"{incident_number} - Latent Approval Request"
+            email_body = html_template.format(
                 incident_number=incident_number,
                 incident_priority=incident_priority,
                 incident_urgency=incident_urgency,
                 reason_for_latent_fix=reason_for_latent_fix,
                 impacted_locations=impacted_locations,
                 business_impact=business_impact,
+                impacted_applications=impacted_applications,
                 issue_summary=issue_summary,
                 maps_lead_approval=maps_lead_approval,
                 cio_dev_lead_review=cio_dev_lead_review,
-                known_issue_reference=known_issue_reference,
                 remediation_steps=remediation_steps,
-                impacted_applications=impacted_applications,
-                request_input_by=request_input_by
+                known_issue_reference=known_issue_reference,
+                request_input_by=request_input_by,
+                greeting_to=greeting_to
             )
 
             null_fields = [k for k, v in field_values.items() if k != "Known Issue references" and not v]
             if null_fields:
                 st.warning(f"The following fields are empty: {', '.join(null_fields)}")
             else:
-                send_email(to_list, cc_list, subject, email_final_body)
+                send_email(to_list, cc_list, subject, email_body)
                 store_latent_approval_in_duckdb({
                     "request_input_by": request_input_by,
                     "impacted_applications": impacted_applications,
