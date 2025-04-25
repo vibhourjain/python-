@@ -1,0 +1,27 @@
+1. Background
+
+The organization relies on monthly capacity metrics to monitor system utilization and ensure that infrastructure can support business demands. Historically, this process has been manual, involving data extraction from multiple databases (Sybase, Oracle), aggregation in spreadsheets, and visual reporting via PowerPoint. This approach is time-consuming, error-prone, and lacks consistency and scalability.
+
+A need was identified to standardize, automate, and streamline this reporting process using a centralized solution that can ingest, process, and visualize data dynamically.
+
+⸻
+
+2. Challenge
+
+The current capacity reporting process presents several operational challenges:
+	•	Manual Effort: Data extraction and formatting are handled manually, taking significant analyst time each cycle.
+	•	Data Inconsistencies: Lack of a standardized schema and manual adjustments can introduce reporting discrepancies.
+	•	No Central Repository: Historical capacity data is fragmented and difficult to access for trend analysis.
+	•	Visualization Gaps: Reports lack consistency in design, metrics, and cannot adapt to ad-hoc analysis needs.
+	•	Dependency on Individuals: The process knowledge is not fully documented or systemized, creating operational risks.
+
+⸻
+
+3. Solution
+
+To address these issues, an automated Capacity Planning Report Generator was developed with the following capabilities:
+	•	Metadata-Driven SQL Execution: SQL queries configured in a DuckDB metadata table are dynamically run across multiple databases based on parameters like start_date and end_date.
+	•	Centralized Data Repository: A DuckDB-based data mart consolidates daily and monthly volume data for trend analysis.
+	•	Automated Visualization: Line and bar graphs are generated using Seaborn/Plotly for each application and stored directly in a PowerPoint using templates.
+	•	Dynamic Templates: Reporting templates are linked to applications via metadata, ensuring flexibility and consistency.
+	•	Audit and Reusability: All inputs, SQLs, and report metadata are tracked for traceability and future reuse.
