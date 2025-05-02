@@ -105,12 +105,11 @@ def fn_latent_approval():
     request_input_by = st.text_input("Enter Your Name:", Key="request_input_by")
     impacted_applications = st.text_input("Impacted Applications:", Key="impacted_applications")
     issue_summary = get_formatted_text("Issue Summary:", Key="issue_summary")
-    maps_lead_approval = st.text_input("MAPS Lead Approval:", "Vibhour Jain")
-    greeting_to=maps_lead_approval.split()[0]
-    
-    cio_dev_lead_review = st.text_input("Reviewed by CIO Dev Lead:", Key="cio_dev_lead_review")
-    known_issue_reference = st.text_input("Known Issue references (Jira/TechDebt/PKE): Leave Blank if not Applicable", Key="known_issue_reference")
+    maps_lead_approval = st.text_input("MAPS Lead Approval (Enter FirstName LastName) :", "Vibhour Jain")
+    greeting_to = maps_lead_approval.split()[0]
 
+    cio_dev_lead_review = st.text_input("Reviewed by CIO Dev Lead:", Key="cio_dev_lead_review")
+    known_issue_reference = st.text_input("Known Issue references (Jira/TechDebt/PKE): Leave Blank if Not Applicable", Key="known_issue_reference")
     incident_number = st.text_input("Incident Number:", Key="incident_number").upper()
     incident_priority = st.text_input("Incident Priority:", "P3-L")
     incident_urgency = st.text_input("Incident Urgency:", "Medium")
@@ -141,12 +140,12 @@ def fn_latent_approval():
     st.write("***Enter Recipients & Verify the E-Mail Details before send***")
     with st.expander("Email Details"):
         to_list = st.text_area("***Must Enter To*** (comma-separated):", "vibhourjain@gmail.com").split(',')
-        cc_list = st.text_area("***Must Enter CC*** (comma-separated):", Key="cc_list").split(',')
+        cc_list = st.text_area("***Must Enter CC*** (comma-separated):", Key = "cc_list").split(',')
         st.write("Preview of EMail Body")
         st.markdown(email_body, unsafe_allow_html=True)
 
     if st.button("Send Email"):
-        to_list=list(to_list)
+        to_list = list(to_list)
         cc_list = list(cc_list)
         if validate_email_domain(to_list, list_type='to'):
             subject = f"{incident_number} - Latent Approval Request-TechDebt: {known_issue_reference}" \
