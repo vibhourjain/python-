@@ -29,14 +29,14 @@ def run_powerbroker_command(hostname, username, password, pbrun_command, securit
     start_time = datetime.now()
     end_time = start_time + timedelta(seconds=timeout)
     output = ''
-    error = None  # Initialize error variable
+    error = None
     stage = 0
     password_attempts = 0
     security_attempts = 0
     chan = None
 
     try:
-        logger.info(f"Connecting to {hostname} as {username} with 2FA {security_code}")
+        logger.info(f"Connecting to {hostname} as {username}")
         client.connect(hostname, username=username, password=password, timeout=15)
         logger.info("SSH connection established")
 
