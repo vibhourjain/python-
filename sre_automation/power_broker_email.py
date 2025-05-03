@@ -1,15 +1,8 @@
-# /*
-# Updating for API link
-# */
-
 import streamlit as st
-from utils_email import validate_email_domain, send_email, send_mailto_email, get_formatted_input
+from utils_email import send_email, get_formatted_text
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-print("1")
 
 def page_power_broker_email():
     st.title("PowerBroker Request Approval")
@@ -50,8 +43,8 @@ def page_power_broker_email():
             <td><b>Task Description</b></td>
             <td>{task_description}</td>
             <td>Description of why the break-glass is needed.
-            Must be detailed enough for non-SME to understand and make an informed decision on whether or not to Approve access
-</td>
+                Must be detailed enough for non-SME to understand and make an informed decision on whether or not to Approve access
+            </td>
         </tr>
         <tr>
             <td><b>Service Account(s)</b></td>
@@ -66,15 +59,11 @@ def page_power_broker_email():
     </table>
     
     {api_links}
-
+    
     <p><b>First Responders KB:</b> Approve PowerBroker Break-Glass access for L2 members -
     <a href="mailto:vibhourjain@gmail.com">vibhourjain@gmail.com</a>;
     <a href="mailto:vibhourjain@yahoo.com">vibhourjain@yahoo.com</a></p>
-
-
-
-
-
+    
     <p>Regards,</p>
 
     <p class="footer">This E-Mail is sent from App.</p>
@@ -83,19 +72,15 @@ def page_power_broker_email():
 </html>
 """
 
-    # Dropdown for Impacted Applications
+    request_input_by = st.text_input("Enter Your Name:")
     application_name = ["Storage","Kitchen"]
     application_name.sort()
-    application = st.selectbox("Application:", application_name)
-
-    task_description = get_formatted_input("Task Description:","Need to perform the recovery steps")
+    application = st.multiselect("Application:", application_name)
+    task_description = get_formatted_text("Task Description:", "Need to perform the recovery steps")
     service_account = st.text_input("Service Account(s):")
-    users = st.text_input('Enter Users (nbk-FirstName) comma "," separated:', 'zkajghh-Vibhour')
+    users = st.text_input('Enter User SID (nbk-FirstName) comma "," separated:', 'zkajghh-Vibhour')
     power_broker_grantee = users[:7]
-
     work_order_number = st.text_input("Work-Order Number:")
-    logger.info(f"application:{application}")
-
     work_order_number = work_order_number.upper()
 
     service_accounts = [sa.strip() for sa in service_account.split(',')]
@@ -118,28 +103,21 @@ def page_power_broker_email():
         to_list = ["vibhourjain@gmail.com"]
         cc_list = ["vibhourjain@gmail.com"]
 
-    print("12")
 
-
-    # Send email functionality
     if st.button("Send Email"):
-        # Validate email domains
 
         print("send-to_list", to_list)
         print("send-cc_list", cc_list)
         if to_list:
-            # st.success("Success")
-            # Generate email subject
             subject = f"Breakglass Approval Japan Post-Trade - PowerBroker - {work_order_number}"
 
-            # Replace placeholders with user input
             email_body = html_template.format(
                 application=application,
                 task_description=task_description,
                 service_account=service_account,
                 users=users,
-                api_links=api_links_section
+                api_links=api_links_section,
+                request_input_by=request_input_by
             )
 
-            # Send email using win32client
             send_email(to_list, cc_list, subject, email_body)
