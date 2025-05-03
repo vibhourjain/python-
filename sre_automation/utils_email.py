@@ -10,6 +10,24 @@ def get_formatted_text(label: str, value: str = "", key=None):
     text = st.text_area(label, value=value, key=key)
     return text.replace('\n', '<br>') if text else ""
 
+def validate_email_lists(to_list, cc_list, domain="bofa.com"):
+    if not to_list:
+        raise ValueError("To list cannot be empty.")
+    if not cc_list:
+        raise ValueError("CC list cannot be empty.")
+
+    invalid_to = [email.strip() for email in to_list if not email.lower().endswith(f"@{domain}")]
+    invalid_cc = [email.strip() for email in cc_list if not email.lower().endswith(f"@{domain}")]
+
+    if invalid_to or invalid_cc:
+        message = []
+        if invalid_to:
+            message.append(f"Invalid To addresses: {', '.join(invalid_to)}")
+        if invalid_cc:
+            message.append(f"Invalid CC addresses: {', '.join(invalid_cc)}")
+        raise ValueError(" | ".join(message))
+
+    return True
 
 def validate_email_domain(email_list, list_type, domain="bofa.com"):
     if list_type == 'to' and not email_list:
