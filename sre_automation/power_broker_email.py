@@ -102,9 +102,7 @@ def page_power_broker_email():
         to_list = ["vibhourjain@gmail.com"]
         cc_list = ["vibhourjain@gmail.com"]
 
-
     if st.button("Send Email"):
-
         if to_list:
             subject = f"Breakglass Approval Japan Post-Trade - PowerBroker - {work_order_number}"
 
