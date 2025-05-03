@@ -78,8 +78,7 @@ def page_power_broker_email():
     application = st.multiselect("Application:", application_name)
     task_description = get_formatted_text("Task Description:", "Need to perform the recovery steps")
     service_account = st.text_input("Service Account(s):")
-    users = st.text_input('Enter User SID (nbk-FirstName) comma "," separated:', 'zkajghh-Vibhour')
-    power_broker_grantee = users[:7]
+    users = st.text_input('Enter User SID (e.g.: zkajghh-Vibhour)')
     work_order_number = st.text_input("Work-Order Number:")
     work_order_number = work_order_number.upper()
 
@@ -106,8 +105,6 @@ def page_power_broker_email():
 
     if st.button("Send Email"):
 
-        print("send-to_list", to_list)
-        print("send-cc_list", cc_list)
         if to_list:
             subject = f"Breakglass Approval Japan Post-Trade - PowerBroker - {work_order_number}"
 
